@@ -20,21 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB:       nz_energy
-          POSTGRES_USER:     postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,40 +32,33 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Set up database schema
-        env:
-          PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d nz_energy \
-            -f database/schema.sql
-          psql -h localhost -U postgres -d nz_energy \
-            -f database/seed.sql
-
       - name: Set up dbt profiles
         run: |
           mkdir -p ~/.dbt
           cat > ~/.dbt/profiles.yml << EOF
           nz_energy_dbt:
-            target: dev
+            target: prod
             outputs:
-              dev:
+              prod:
                 type: postgres
-                host: localhost
+                host: ${{ secrets.NEON_DB_HOST }}
                 port: 5432
-                user: postgres
-                pass: postgres
-                dbname: nz_energy
+                user: ${{ secrets.NEON_DB_USER }}
+                pass: ${{ secrets.NEON_DB_PASSWORD }}
+                dbname: ${{ secrets.NEON_DB_NAME }}
                 schema: public
                 threads: 4
+                sslmode: require
           EOF
 
       - name: Run rollup flow
         env:
           PREFECT_API_KEY:  ${{ secrets.PREFECT_API_KEY }}
           PREFECT_API_URL:  ${{ secrets.PREFECT_API_URL }}
-          DB_HOST:          localhost
-          DB_PORT:          5432
-          DB_NAME:          nz_energy
-          DB_USER:          postgres
-          DB_PASSWORD:      postgres
+          NEON_DB_HOST:     ${{ secrets.NEON_DB_HOST }}
+          NEON_DB_PORT:     5432
+          NEON_DB_NAME:     ${{ secrets.NEON_DB_NAME }}
+          NEON_DB_USER:     ${{ secrets.NEON_DB_USER }}
+          NEON_DB_PASSWORD: ${{ secrets.NEON_DB_PASSWORD }}
+          NEON_DB_SSLMODE:  require
         run: python pipeline/flows/rollup_flow.py
