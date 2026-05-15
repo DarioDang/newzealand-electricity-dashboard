@@ -3,7 +3,6 @@ version: 2
 sources:
   - name: em6
     description: "Raw tables ingested from em6 free API by Python pipeline"
-    database: nz_energy
     schema: public
     tables:
 
