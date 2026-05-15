@@ -1,0 +1,6 @@
+project-dir.txt
+venv
+.env
+nz_energy_dbt/profiles.yml
+.vscode
+notebooks
