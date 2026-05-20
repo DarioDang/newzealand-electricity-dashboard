@@ -1,0 +1,142 @@
+/* ============================================================
+   css/animations.css
+   All @keyframes for the dashboard.
+   ============================================================ */
+
+/* ── Page entrance ─────────────────────────────────────── */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Shimmer (header logo) ─────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ── Pulse (live dot, pipeline dots) ───────────────────── */
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(20,184,166,0.4); }
+  50%     { box-shadow: 0 0 0 5px rgba(20,184,166,0); }
+}
+
+/* ── KPI card animations ───────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes numberReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes barFill {
+  from { width: 0%; }
+  to   { width: var(--bar-width); }
+}
+
+/* ── flowLine kept for backward compat but unused on KPI ── */
+@keyframes flowLine {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  15%  { opacity: 0.55; }
+  85%  { opacity: 0.55; }
+  100% { transform: translateX(220%); opacity: 0; }
+}
+
+/* ── Heartbeat ECG line across KPI row ─────────────────── */
+/* The SVG path total length is set in JS — this drives it  */
+@keyframes ecgDraw {
+  /* Signal travels left → right across all 4 cards         */
+  0%   { stroke-dashoffset: var(--ecg-len); opacity: 0; }
+  3%   { opacity: 1; }
+  70%  { opacity: 1; }
+  85%  { stroke-dashoffset: 0; opacity: 0.6; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* Glowing dot that rides the tip of the ECG line           */
+@keyframes ecgDot {
+  0%,84% { opacity: 0; }
+  5%     { opacity: 1; }
+  80%    { opacity: 1; }
+  86%    { opacity: 0; }
+  100%   { opacity: 0; }
+}
+
+/* ── Corner dots ───────────────────────────────────────── */
+@keyframes cornerGlow {
+  0%,100% { opacity: 0.25; transform: scale(1); }
+  50%     { opacity: 0.9;  transform: scale(1.4); }
+}
+
+@keyframes gridPulse {
+  0%,100% { opacity: 0.0; }
+  50%     { opacity: 1.0; }
+}
+
+@keyframes blinkDot {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.15; }
+}
+
+/* ── Border glow ───────────────────────────────────────── */
+@keyframes borderGlow {
+  0%,100% { border-color: var(--border-base); }
+  50%     { border-color: var(--teal);
+            box-shadow: 0 0 16px rgba(20,184,166,0.15); }
+}
+
+/* ── Pipeline arrows ───────────────────────────────────── */
+@keyframes arrowPulse {
+  0%,100% { opacity: 0.3; transform: translateX(0); }
+  50%     { opacity: 1.0; transform: translateX(6px); }
+}
+
+/* ── Profile shine sweep ───────────────────────────────── */
+@keyframes profileShine {
+  0%   { left: -80%; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* ── Clock card ────────────────────────────────────────── */
+@keyframes clockBreath {
+  0%,100% {
+    box-shadow:   0 0 12px rgba(20,184,166,0.06);
+    border-color: rgba(20,184,166,0.35);
+  }
+  50% {
+    box-shadow:   0 0 22px rgba(20,184,166,0.18);
+    border-color: rgba(20,184,166,0.75);
+  }
+}
+
+@keyframes clockShine {
+  0%   { left: -60%; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { left: 120%; opacity: 0; }
+}
+
+/* ── Loading screen dots ───────────────────────────────── */
+@keyframes loadingBounce {
+  0%,80%,100% { transform: scale(0); opacity: 0.3; }
+  40%         { transform: scale(1);   opacity: 1; }
+}
+
+/* ── Chart card entrance ───────────────────────────────── */
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
