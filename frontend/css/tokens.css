@@ -1,0 +1,95 @@
+/* ============================================================
+   css/tokens.css
+   Single source of truth for every color, font, and spacing
+   value in the dashboard.
+   
+   Change a value here → updates everywhere automatically.
+   ============================================================ */
+
+:root {
+
+  /* ── Background layers ─────────────────────────────────── */
+  --bg-page:       #060d18;   /* outermost page background    */
+  --bg-header:     #0a0f1a;   /* header bar                   */
+  --bg-card:       #111d2e;   /* KPI cards, chart containers  */
+  --bg-deep:       #0d1520;   /* chart plot area              */
+  --bg-ocean:      #0d1f35;   /* map ocean color              */
+  --bg-inset:      #0d1b2a;   /* icon circles, inset elements */
+
+  /* ── Border colors ─────────────────────────────────────── */
+  --border-base:   #1e3448;   /* default card/component border */
+  --border-subtle: #152338;   /* chart grid lines              */
+  --border-mid:    #2a4060;   /* slightly brighter border      */
+  --border-focus:  #254059;   /* hover state border            */
+
+  /* ── Brand / accent ────────────────────────────────────── */
+  --teal:          #14b8a6;   /* primary brand teal            */
+  --teal-dark:     #0d9488;   /* darker teal for gradients     */
+  --teal-glow:     rgba(20, 184, 166, 0.12);
+  --teal-subtle:   rgba(20, 184, 166, 0.08);
+
+  /* ── Semantic colors ───────────────────────────────────── */
+  --green:         #10b981;   /* clean/renewable/good          */
+  --lime:          #84cc16;   /* moderate-clean                */
+  --amber:         #f59e0b;   /* warning / moderate            */
+  --orange:        #f97316;   /* worse                         */
+  --red:           #ef4444;   /* dirty / high / alert          */
+  --purple:        #7c3aed;   /* reserves boxes                */
+  --purple-light:  rgba(124, 58, 237, 0.78);
+  --purple-border: rgba(180, 150, 255, 0.9);
+  --violet:        #8b5cf6;
+
+  /* ── Text colors ───────────────────────────────────────── */
+  --text-primary:  #e8f0f8;   /* main readable text            */
+  --text-secondary:#7a9bb5;   /* labels, subtitles             */
+  --text-muted:    #3d5a75;   /* very low emphasis             */
+
+  /* ── Map land ──────────────────────────────────────────── */
+  --map-land:      #9be8e4;
+  --map-coast:     #1f8f8a;
+
+  /* ── Typography ────────────────────────────────────────── */
+  --font-mono:     'Space Mono', 'Courier New', monospace;
+  --font-sans:     'DM Sans', 'Segoe UI', sans-serif;
+
+  /* ── Font sizes ────────────────────────────────────────── */
+  --text-xs:       8px;
+  --text-sm:       10px;
+  --text-base:     12px;
+  --text-md:       14px;
+  --text-lg:       18px;
+  --text-xl:       24px;
+  --text-2xl:      28px;
+  --text-3xl:      36px;
+
+  /* ── Spacing ───────────────────────────────────────────── */
+  --space-1:       4px;
+  --space-2:       8px;
+  --space-3:       12px;
+  --space-4:       14px;
+  --space-5:       16px;
+  --space-6:       20px;
+  --space-7:       24px;
+  --space-8:       28px;
+
+  /* ── Border radius ─────────────────────────────────────── */
+  --radius-sm:     6px;
+  --radius-md:     10px;
+  --radius-lg:     14px;
+  --radius-xl:     18px;
+  --radius-full:   9999px;
+
+  /* ── Shadows ───────────────────────────────────────────── */
+  --shadow-card:   0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-teal:   0 0 20px rgba(20, 184, 166, 0.12);
+
+  /* ── Chart heights ─────────────────────────────────────── */
+  --chart-h-main:  590px;     /* row 1 charts (map, gauge, price) */
+  --chart-h-sub:   590px;     /* row 2 charts                     */
+  --kpi-min-h:     140px;     /* KPI card minimum height          */
+
+  /* ── Transitions ───────────────────────────────────────── */
+  --transition-fast:   0.2s ease;
+  --transition-base:   0.3s ease;
+  --transition-slow:   0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
