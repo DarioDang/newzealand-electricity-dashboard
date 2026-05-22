@@ -5,17 +5,17 @@
 ============================================================ */
 
 const NZ_PRICE_MAP = {
-  viewBoxWidth: 620,
-  viewBoxHeight: 700,
   svgPath: "assets/nz.svg",
-
-  mapFit: {
-    widthRatio: 0.68,
-    heightRatio: 0.88,
-    offsetX: -355,
-    offsetY: 0,
-  },
 };
+
+const PRICE_BANDS = [
+  { label: "< $100", min: -Infinity, max: 100, color: "#8b5cf6" },
+  { label: "$100 - $200", min: 100, max: 200, color: "#99f6e4" },
+  { label: "$200 - $300", min: 200, max: 300, color: "#14b8a6" },
+  { label: "$300 - $400", min: 300, max: 400, color: "#facc15" },
+  { label: "$400 - $500", min: 400, max: 500, color: "#f97316" },
+  { label: "> $500", min: 500, max: Infinity, color: "#e11d48" },
+];
 
 const REGION_DOT_POINTS = [
   {
@@ -163,34 +163,13 @@ function clearMapOverlays() {
   const dotGroup = document.getElementById("nz-map-dots");
   const labelGroup = document.getElementById("nz-map-labels");
   const debugGroup = document.getElementById("nz-map-debug");
+  const legendGroup = document.getElementById("nz-map-legend");
 
   if (lineGroup) lineGroup.innerHTML = "";
   if (dotGroup) dotGroup.innerHTML = "";
   if (labelGroup) labelGroup.innerHTML = "";
   if (debugGroup) debugGroup.innerHTML = "";
-}
-
-function renderRegionDotsOnly() {
-  clearMapOverlays();
-
-  const dotGroup = document.getElementById("nz-map-dots");
-  if (!dotGroup) return;
-
-  REGION_DOT_POINTS.forEach((region) => {
-    if (!region.showDot) return;
-
-    const dot = createSvgElement("circle", {
-      cx: region.x,
-      cy: region.y,
-      r: 5.5,
-      fill: "#7EF9E7",
-      stroke: "#ffffff",
-      "stroke-width": 1.4,
-      class: "nz-map-dot",
-    });
-
-    dotGroup.appendChild(dot);
-  });
+  if (legendGroup) legendGroup.innerHTML = "";
 }
 
 async function initNZPriceMap() {
@@ -283,6 +262,8 @@ function renderNZPriceMap(regionData = []) {
 
     drawRegionGroup(overlayGroup, region, price);
   });
+
+  renderMapLegend();
 }
 
 function getPriceByRegion(regionData) {
@@ -303,40 +284,6 @@ function getPriceByRegion(regionData) {
   return map;
 }
 
-
-function getLatestPriceByNode(priceData) {
-  const map = new Map();
-
-  if (!Array.isArray(priceData)) return map;
-
-  priceData.forEach((item) => {
-    const nodeId =
-      item.node_id ||
-      item.nodeId ||
-      item.node ||
-      item.id ||
-      item.location_id;
-
-    if (!nodeId) return;
-
-    const existing = map.get(nodeId);
-
-    if (!existing) {
-      map.set(nodeId, item);
-      return;
-    }
-
-    const currentTime = item.timestamp_nzt || item.timestamp || "";
-    const existingTime = existing.timestamp_nzt || existing.timestamp || "";
-
-    if (String(currentTime) > String(existingTime)) {
-      map.set(nodeId, item);
-    }
-  });
-
-  return map;
-}
-
 function getPriceValue(item) {
   if (!item) return null;
 
@@ -351,99 +298,14 @@ function getPriceValue(item) {
   return Number.isFinite(number) ? number : null;
 }
 
-function drawConnectorLine(group, node) {
-  const labelWidth = 112;
-  const labelHeight = 40;
-
-  let x2;
-  let y2;
-
-  if (node.lineAttach === "bottom") {
-    x2 = node.labelX + labelWidth / 2;
-    y2 = node.labelY + labelHeight;
-  } else {
-    x2 = node.anchor === "left"
-      ? node.labelX + labelWidth
-      : node.labelX;
-
-    y2 = node.labelY + labelHeight / 2;
-  }
-
-  const line = createSvgElement("line", {
-    x1: node.x,
-    y1: node.y,
-    x2,
-    y2,
-    class: "nz-map-line",
-  });
-
-  group.appendChild(line);
-}
-
-function drawPriceDot(group, node, price) {
-  const dot = createSvgElement("circle", {
-    cx: node.x,
-    cy: node.y,
-    r: 5.8,
-    fill: getPriceColor(price),
-    class: "nz-map-dot",
-  });
-
-  group.appendChild(dot);
-}
-
-function drawPriceLabel(group, node, price) {
-  const labelWidth = 112;
-  const labelHeight = 40;
-  const boxX = node.labelX;
-  const boxY = node.labelY;
-
-  const label = createSvgElement("g", {
-    class: "nz-map-label",
-  });
-
-  const rect = createSvgElement("rect", {
-    x: boxX,
-    y: boxY,
-    width: labelWidth,
-    height: labelHeight,
-    rx: 8,
-    ry: 8,
-    class: "nz-map-label-box",
-  });
-
-  const name = createSvgElement("text", {
-    x: boxX + 10,
-    y: boxY + 16,
-    class: "nz-map-label-name",
-  });
-  name.textContent = node.displayName || node.name;
-
-  const value = createSvgElement("text", {
-    x: boxX + 10,
-    y: boxY + 32,
-    class: "nz-map-label-price",
-  });
-
-  value.textContent = Number.isFinite(price)
-    ? `$${price.toFixed(2)}/MWh`
-    : "No data";
-
-  label.appendChild(rect);
-  label.appendChild(name);
-  label.appendChild(value);
-
-  group.appendChild(label);
-}
-
 function getPriceColor(price) {
   if (!Number.isFinite(price)) return "#64748b";
 
-  if (price < 80) return "#22c55e";
-  if (price < 150) return "#14b8a6";
-  if (price < 250) return "#f59e0b";
+  const band = PRICE_BANDS.find(
+    (band) => price >= band.min && price < band.max
+  );
 
-  return "#ef4444";
+  return band ? band.color : "#64748b";
 }
 
 function createSvgElement(tag, attrs = {}) {
@@ -456,55 +318,71 @@ function createSvgElement(tag, attrs = {}) {
   return element;
 }
 
+function renderMapLegend() {
+  const legendGroup = document.getElementById("nz-map-legend");
+  if (!legendGroup) return;
 
-function enableMapCoordinateDebug() {
-  const svg = document.getElementById("nz-price-map");
-  const debugGroup = document.getElementById("nz-map-debug");
+  legendGroup.innerHTML = "";
 
-  if (!svg || !debugGroup) return;
+  const legendX = 485;
+  const legendY = 500;
+  const itemHeight = 28;
+  const boxWidth = 145;
+  const boxHeight = 205;
 
-  svg.addEventListener("click", function (event) {
-    const point = svg.createSVGPoint();
-    point.x = event.clientX;
-    point.y = event.clientY;
-
-    const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
-
-    const x = Number(svgPoint.x.toFixed(1));
-    const y = Number(svgPoint.y.toFixed(1));
-
-    console.log(`SVG coordinate: x=${x}, y=${y}`);
-
-    drawDebugMarker(debugGroup, x, y);
+  const wrapper = createSvgElement("g", {
+    class: "nz-map-legend-group",
+    transform: `translate(${legendX}, ${legendY})`,
   });
 
-  console.log("✅ Map coordinate debug enabled. Click map to get SVG x/y.");
-}
-
-function drawDebugMarker(group, x, y) {
-  group.innerHTML = "";
-
-  const circle = createSvgElement("circle", {
-    cx: x,
-    cy: y,
-    r: 6,
-    fill: "#ff4d4f",
-    stroke: "#ffffff",
-    "stroke-width": 1.5
+  const background = createSvgElement("rect", {
+    x: 0,
+    y: 0,
+    width: boxWidth,
+    height: boxHeight,
+    rx: 10,
+    ry: 10,
+    class: "nz-map-legend-bg",
   });
 
-  const text = createSvgElement("text", {
-    x: x + 10,
-    y: y - 10,
-    fill: "#ffffff",
-    "font-size": 11,
-    "font-family": "monospace"
+  const title = createSvgElement("text", {
+    x: 14,
+    y: 24,
+    class: "nz-map-legend-title",
   });
 
-  text.textContent = `(${x}, ${y})`;
+  title.textContent = "Price Range";
 
-  group.appendChild(circle);
-  group.appendChild(text);
+  wrapper.appendChild(background);
+  wrapper.appendChild(title);
+
+  PRICE_BANDS.forEach((band, index) => {
+    const y = 48 + index * itemHeight;
+
+    const colorBox = createSvgElement("rect", {
+      x: 14,
+      y: y - 11,
+      width: 16,
+      height: 16,
+      rx: 3,
+      ry: 3,
+      fill: band.color,
+      class: "nz-map-legend-color",
+    });
+
+    const legendLabel = createSvgElement("text", {
+      x: 38,
+      y: y + 1,
+      class: "nz-map-legend-label",
+    });
+
+    legendLabel.textContent = band.label;
+
+    wrapper.appendChild(colorBox);
+    wrapper.appendChild(legendLabel);
+  });
+
+  legendGroup.appendChild(wrapper);
 }
 
 function drawRegionGroup(parentGroup, region, price) {
