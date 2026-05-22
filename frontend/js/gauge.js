@@ -53,12 +53,46 @@ function renderGauge(carbon) {
         to   { transform: rotate(${needleAngle}deg); }
       }
 
+        @keyframes valueFloat_${uid} {
+          0%, 100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          50% {
+            transform: translateY(-3px);
+            opacity: 0.9;
+          }
+        }
+
+        .gauge-value-float-${uid} {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: valueFloat_${uid} 3s ease-in-out infinite;
+        }
+
       /* Shimmer sweep */
       @keyframes shimmerSweep_${uid} {
-        0%   { stroke-dashoffset: ${ARC_LEN}; opacity: 0; }
-        15%  { opacity: 0.75; }
-        85%  { opacity: 0.75; }
-        100% { stroke-dashoffset: 0; opacity: 0; }
+        0% {
+          stroke-dashoffset: ${ARC_LEN};
+          opacity: 0;
+        }
+
+        12% {
+          opacity: 0.95;
+        }
+
+        45% {
+          opacity: 0.95;
+        }
+
+        58% {
+          opacity: 0;
+        }
+
+        100% {
+          stroke-dashoffset: ${ARC_LEN - ARC_LEN * gaugeProgress};
+          opacity: 0;
+        }
       }
 
       /* Counter number fade in */
@@ -87,10 +121,10 @@ function renderGauge(carbon) {
       }
 
       .gauge-shimmer-${uid} {
-        stroke-dasharray: 150 377.8;
+        stroke-dasharray: 60 ${ARC_LEN};
         stroke-dashoffset: ${ARC_LEN};
         opacity: 0;
-        animation: shimmerSweep_${uid} 8s ease-in-out 2.5s infinite;
+        animation: shimmerSweep_${uid} 4.8s cubic-bezier(0.4,0,0.2,1) 2.2s infinite;
       }
 
       .gauge-num-${uid} {
@@ -119,11 +153,11 @@ function renderGauge(carbon) {
             <stop offset="100%" stop-color="#ef4444"/>
           </linearGradient>
           <linearGradient id="shimGrad_${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="white" stop-opacity="0"/>
-            <stop offset="35%"  stop-color="white" stop-opacity="0.10"/>
-            <stop offset="50%"  stop-color="white" stop-opacity="0.55"/>
-            <stop offset="65%"  stop-color="white" stop-opacity="0.10"/>
-            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
+            <stop offset="35%"  stop-color="#ccfff4" stop-opacity="0.25"/>
+            <stop offset="50%"  stop-color="#ffffff" stop-opacity="0.95"/>
+            <stop offset="65%"  stop-color="#ccfff4" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
           </linearGradient>
           <filter id="arcGlow_${uid}">
             <feGaussianBlur stdDeviation="3" result="b"/>
@@ -134,8 +168,11 @@ function renderGauge(carbon) {
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <filter id="shineGlow_${uid}">
-            <feGaussianBlur stdDeviation="2.2" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            <feGaussianBlur stdDeviation="3.2" result="b"/>
+            <feMerge>
+              <feMergeNode in="b"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
           </filter>
           <mask id="arcMask_${uid}">
             <path d="M 32 230 A 168 168 0 0 1 368 230"
@@ -147,14 +184,19 @@ function renderGauge(carbon) {
         </defs>
 
         <!-- Value + status -->
-        <g class="gauge-num-${uid}">
-          <text x="200" y="20" text-anchor="middle"
-            font-size="18" font-weight="700" fill="white"
+        <g class="gauge-num-${uid} gauge-value-float-${uid}">
+          <text x="200" y="0" text-anchor="middle"
+            font-size="11" font-weight="700" fill="#6ee7b7"
+            font-family="Space Mono,monospace">${statusTxt}</text>
+
+          <text x="200" y="22" text-anchor="middle"
+            font-size="20" font-weight="700" fill="white"
             font-family="Space Mono,monospace"
             id="gauge-num">${carbonVal.toFixed(1)}</text>
-          <text x="200" y="34" text-anchor="middle"
+
+          <text x="200" y="42" text-anchor="middle"
             font-size="10" fill="#7a9bb5"
-            font-family="Space Mono,monospace">g/kWh &nbsp; ${statusTxt}</text>
+            font-family="Space Mono,monospace">g/kWh</text>
         </g>
 
         <!-- Track -->
