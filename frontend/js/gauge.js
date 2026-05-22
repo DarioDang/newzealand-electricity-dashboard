@@ -223,13 +223,13 @@ function renderGauge(carbon) {
         ${ticks}
 
         <!-- Labels -->
-        <text x="26"  y="248" fill="#3d5a75" font-size="11"
+        <text x="60"  y="235" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">0</text>
         <text x="86"  y="148" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">50</text>
-        <text x="200" y="70"  fill="#3d5a75" font-size="11"
+        <text x="200" y="100"  fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">100</text>
-        <text x="314" y="148" fill="#3d5a75" font-size="11"
+        <text x="314" y="155" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">150</text>
 
         <!-- Needle — CSS keyframe drives the spin -->
