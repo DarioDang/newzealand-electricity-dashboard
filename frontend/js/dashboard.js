@@ -483,7 +483,6 @@ async function init() {
     renderSummaryChart(data.priceSummary);
     renderTrendChart(data.carbonTrend);
     renderSpreadChart(data.spreadTrend);
-
     renderPipeline();
     renderProfile();
 
