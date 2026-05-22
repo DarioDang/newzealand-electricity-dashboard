@@ -311,6 +311,33 @@
   font-size: 13px;
   text-anchor: middle;
 }
+
+.nz-map-legend-bg {
+  fill: rgba(13, 21, 32, 0.88);
+  stroke: rgba(94, 234, 212, 0.35);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.nz-map-legend-title {
+  fill: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.nz-map-legend-label {
+  fill: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.nz-map-legend-color {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
  
 /* ── Footer ────────────────────────────────────────────── */
 .dash-footer {
