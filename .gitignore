@@ -4,3 +4,6 @@ venv
 nz_energy_dbt/profiles.yml
 .vscode
 notebooks
+nz-grid-streamlit/backup-script
+frontent/css/backup
+frontend/js/backup-script
