@@ -84,8 +84,8 @@
   --shadow-teal:   0 0 20px rgba(20, 184, 166, 0.12);
 
   /* ── Chart heights ─────────────────────────────────────── */
-  --chart-h-main:  590px;     /* row 1 charts (map, gauge, price) */
-  --chart-h-sub:   590px;     /* row 2 charts                     */
+  --chart-h-main:  680px;     /* row 1 charts (map, gauge, price) */
+  --chart-h-sub:   680px;     /* row 2 charts                     */
   --kpi-min-h:     140px;     /* KPI card minimum height          */
 
   /* ── Transitions ───────────────────────────────────────── */
