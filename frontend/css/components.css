@@ -1,7 +1,5 @@
 /* ============================================================
    css/components.css
-   Visual styling for every component.
-   Controls HOW things look, not where they sit (that's layout.css)
    ============================================================ */
 
 /* ══════════════════════════════════════════════════════════
@@ -27,7 +25,6 @@
   margin-top: 3px;
 }
 
-/* ── NZ Clock card ─────────────────────────────────────── */
 .nz-clock-card {
   position: relative;
   overflow: hidden;
@@ -78,7 +75,6 @@
   flex-shrink: 0;
 }
 
-/* ── Live badge ────────────────────────────────────────── */
 .live-badge {
   background: rgba(20,184,166,0.1);
   border: 1px solid var(--teal);
@@ -102,7 +98,6 @@
   flex-shrink: 0;
 }
 
-/* ── Status chip ───────────────────────────────────────── */
 .status-chip {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -161,7 +156,6 @@
   transform: translateY(-2px);
 }
 
-/* Top teal accent line */
 .kpi-card::before {
   content: '';
   position: absolute;
@@ -170,7 +164,6 @@
   background: linear-gradient(90deg, var(--teal), transparent);
 }
 
-/* ── KPI ambient animations ────────────────────────────── */
 .kpi-grid-overlay {
   position: absolute;
   inset: 0;
@@ -209,7 +202,6 @@
   animation: cornerGlow var(--corner-dur, 2.5s) ease-in-out var(--corner-delay, 0s) infinite;
 }
 
-/* ── KPI text elements ─────────────────────────────────── */
 .kpi-label {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -238,10 +230,7 @@
 .kpi-value.amber { color: var(--amber); }
 .kpi-value.red   { color: var(--red); }
 
-.kpi-unit {
-  font-size: 14px;
-  color: var(--text-muted);
-}
+.kpi-unit { font-size: 14px; color: var(--text-muted); }
 
 .kpi-sub {
   font-size: 11px;
@@ -262,7 +251,6 @@
 
 .kpi-spacer { flex: 1; }
 
-/* ── KPI progress bar ──────────────────────────────────── */
 .kpi-bar-track {
   margin-top: 10px;
   height: 3px;
@@ -280,14 +268,12 @@
   transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* ── KPI ring (top-right SVG) ──────────────────────────── */
 .kpi-ring-wrap {
   position: absolute;
   top: 12px; right: 14px;
   z-index: 3;
 }
 
-/* ── KPI trend badge ───────────────────────────────────── */
 .kpi-trend-badge {
   display: inline-flex;
   align-items: center;
@@ -302,7 +288,6 @@
   z-index: 4;
 }
 
-/* ── Reserves card specifics ───────────────────────────── */
 .blink-dot-wrap {
   position: absolute;
   top: 14px; right: 14px;
@@ -344,7 +329,6 @@
 }
 
 .reserves-row b { color: var(--text-primary); }
-
 .reserves-island { color: var(--text-muted); }
 
 .reserves-bar {
@@ -367,10 +351,7 @@
    LOADING SCREEN
    ══════════════════════════════════════════════════════════ */
 
-#loading-screen .loading-dot {
-  display: inline-block;
-  margin: 0 4px;
-}
+#loading-screen .loading-dot { display: inline-block; margin: 0 4px; }
 
 .loading-text {
   font-family: var(--font-mono);
@@ -391,11 +372,7 @@
   margin-bottom: 20px;
 }
 
-.divider-line {
-  height: 1px;
-  flex: 1;
-}
-
+.divider-line { height: 1px; flex: 1; }
 .divider-line.left  { background: linear-gradient(to right, transparent, var(--border-base)); }
 .divider-line.right { background: linear-gradient(to left,  transparent, var(--border-base)); }
 
@@ -460,13 +437,8 @@
   animation: arrowPulse 1.5s ease-in-out infinite;
 }
 
-.pipe-arrow-dash {
-  width: 18px; height: 2px;
-  background: var(--teal);
-  border-radius: 1px;
-}
-
-.pipe-arrow-gap { width: 4px; }
+.pipe-arrow-dash { width: 18px; height: 2px; background: var(--teal); border-radius: 1px; }
+.pipe-arrow-gap  { width: 4px; }
 
 .pipe-arrow-head {
   width: 0; height: 0;
@@ -654,9 +626,7 @@
   100% { stroke-dashoffset: 0; opacity: 0; }
 }
 
-.gauge-val-group {
-  animation: fadeInUp 0.4s ease 0.5s both;
-}
+.gauge-val-group { animation: fadeInUp 0.4s ease 0.5s both; }
 
 .gauge-stats {
   display: flex;
@@ -664,7 +634,7 @@
   padding: 10px 8px 14px;
   border-top: 1px solid var(--border-base);
   margin-top: 2px;
-  flex-shrink: 0;           /* stats row never shrinks — SVG takes the space */
+  flex-shrink: 0;
 }
 
 .gauge-stat-item {
@@ -701,13 +671,6 @@
 
 /* ══════════════════════════════════════════════════════════
    CHART PANELS
-   The key sizing model:
-     Row 1 panels (#panel-gauge, #panel-price24, #panel-map)
-       → height: var(--chart-h-main) = 590px, fixed
-       → children use flex:1 + min-height:0 to fill remaining space
-     Row 2 panels (#panel-summary, #panel-trend, #panel-spread)
-       → min-height: var(--chart-h-sub) = 310px
-       → chart divs use min-height:320px as a floor
    ══════════════════════════════════════════════════════════ */
 
 .chart-panel {
@@ -724,21 +687,22 @@
               transform var(--transition-fast);
 }
 
-/* ── Row 1: lock all 3 panels to exact same height ───────── */
 #panel-map,
 #panel-gauge,
 #panel-price24 {
-  height: var(--chart-h-main);   /* 590px — identical for all 3 */
+  height: var(--chart-h-main);
 }
 
-/* ── Row 2: min-height only — let content breathe ─────────── */
+#panel-map {
+  overflow: visible;
+}
+
 #panel-summary,
 #panel-trend,
 #panel-spread {
-  height: var(--chart-h-sub);  /* 590px floor */
+  height: var(--chart-h-sub);
 }
 
-/* ── Panel header — fixed, never shrinks ─────────────────── */
 .panel-header {
   display: flex;
   align-items: center;
@@ -794,7 +758,6 @@
   margin-top: 2px;
 }
 
-/* ── Gauge container — flex:1 so SVG fills below header ─── */
 #gauge-container {
   flex: 1;
   min-height: 0;
@@ -802,55 +765,11 @@
   flex-direction: column;
 }
 
-#gauge-container .gauge-wrap {
-  flex: 1;
-  min-height: 0;
-}
+#gauge-container .gauge-wrap { flex: 1; min-height: 0; }
+#gauge-container .gauge-svg  { flex: 1; min-height: 0; height: 100%; }
 
-#gauge-container .gauge-svg {
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-}
+#chart-price24 { flex: 1; min-height: 0; width: 100%; }
 
-/* ── Price 24hr chart — flex:1, min-height:0 matches gauge ─ */
-#chart-price24 {
-  flex: 1;
-  min-height: 0;    /* critical — lets flex control height, not a floor value */
-  width: 100%;
-}
-
-/* ── Row 2 chart divs — keep a floor so Plotly renders ────── */
 #chart-summary,
 #chart-trend,
-#chart-spread {
-  flex: 1;
-  min-height: 0;  
-  width: 100%;
-}
-
-/* ── Map placeholder — fills panel the same way ─────────── */
-.map-placeholder {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--border-base);
-  border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.01);
-}
-
-.placeholder-inner {
-  text-align: center;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.placeholder-icon  { font-size: 40px; opacity: 0.35; }
-.placeholder-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
-.placeholder-sub   { font-size: 10px; color: var(--text-muted); }
+#chart-spread  { flex: 1; min-height: 0; width: 100%; }
