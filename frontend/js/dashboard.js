@@ -467,6 +467,10 @@ function renderProfile() {
 async function init() {
   startClock();
 
+  if (window.initNZPriceMap) {
+    await window.initNZPriceMap();
+  }
+
   try {
     const data = await API.fetchAll();
     console.log('✅ API data loaded:', data);
@@ -480,6 +484,11 @@ async function init() {
     renderGauge(data.carbon);
 
     renderPrice24Chart(data.priceNodes);
+
+    if (window.renderNZPriceMap) {
+      window.renderNZPriceMap(data.priceRegions || []);
+    }
+
     renderSummaryChart(data.priceSummary);
     renderTrendChart(data.carbonTrend);
     renderSpreadChart(data.spreadTrend);
