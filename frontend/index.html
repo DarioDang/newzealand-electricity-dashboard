@@ -160,12 +160,20 @@
               <div class="panel-sub">14 grid zones · current trading period</div>
             </div>
           </div>
-          <div class="map-placeholder" id="map-placeholder">
-            <div class="placeholder-inner">
-              <div class="placeholder-icon">🗺️</div>
-              <div class="placeholder-title">NZ Price Map</div>
-              <div class="placeholder-sub">In development — coming soon</div>
-            </div>
+          <div class="nz-map-shell" id="nz-map-shell">
+            <svg
+              id="nz-price-map"
+              viewBox="0 0 620 700"
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              aria-label="New Zealand electricity price map"
+            >
+              <g id="nz-map-base"></g>
+              <g id="nz-map-lines"></g>
+              <g id="nz-map-dots"></g>
+              <g id="nz-map-labels"></g>
+              <g id="nz-map-debug"></g>
+            </svg>
           </div>
         </div>
  
@@ -261,6 +269,7 @@
 <script src="js/gauge.js"></script>
 <script src="js/ecg.js"></script>
 <script src="js/charts.js"></script>
+<script src="js/map.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>
