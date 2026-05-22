@@ -18,18 +18,16 @@ function initECG() {
   document.querySelectorAll('.ecg-card-svg').forEach(el => el.remove());
 
   // ── Timing ───────────────────────────────────────────────
-  const SWEEP_DUR  = 1800;   // ms — sweep duration per card
-  const CARD_PAUSE = 200;    // ms — gap between cards
-  const END_PAUSE  = 2400;   // ms — pause after last card before restart
-  // Total cycle = 4 sweeps + 3 gaps + end pause
-  const TOTAL_CYCLE = cards.length * SWEEP_DUR
-                    + (cards.length - 1) * CARD_PAUSE
-                    + END_PAUSE;
+  const SWEEP_DUR = 2000;      
+  const HANDOFF_AT = 0.91;     
+  const STEP_DUR = SWEEP_DUR * HANDOFF_AT;
+  const END_PAUSE = 1200;      
 
-  // Start time of each card within one cycle
+  const TOTAL_CYCLE = STEP_DUR * (cards.length - 1) + SWEEP_DUR + END_PAUSE;
+
   const cardStarts = [];
   for (let i = 0; i < cards.length; i++) {
-    cardStarts.push(i * (SWEEP_DUR + CARD_PAUSE));
+    cardStarts.push(i * STEP_DUR);
   }
 
   // ── ECG path builder ─────────────────────────────────────
@@ -108,7 +106,7 @@ function initECG() {
   // All cards driven from one timer so they're perfectly in sync.
 
   function easeInOut(t) {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    return 1 - Math.pow(1 - t, 1.4);
   }
 
   // MAX opacity — low enough to be background, visible enough to see
@@ -143,8 +141,17 @@ function initECG() {
 
       // Opacity: fade in first 10%, hold, fade out last 18%
       let opacity = 1;
-      if (rawT < 0.10) opacity = rawT / 0.10;
-      if (rawT > 0.82) opacity = 1 - (rawT - 0.82) / 0.18;
+
+      // fade in rất nhanh để giống ECG vừa chạm card là sáng lên
+      if (rawT < 0.08) {
+        opacity = rawT / 0.08;
+      }
+
+      // fade out nhẹ ở đoạn cuối, đúng lúc card sau nhận chuyển tiếp
+      if (rawT > 0.88) {
+        opacity = 1 - (rawT - 0.88) / 0.12;
+      }
+
       const finalOp = Math.max(0, Math.min(1, opacity)) * MAX_OPACITY;
 
       path.style.opacity = finalOp;
@@ -155,7 +162,7 @@ function initECG() {
         dot.setAttribute('cx', pt.x);
         dot.setAttribute('cy', pt.y);
         // Dot slightly brighter than line but still subtle
-        dot.style.opacity = finalOp > 0.01 ? Math.min(finalOp * 2.5, 0.55) : '0';
+        dot.style.opacity = finalOp > 0.01 ? Math.min(finalOp * 3.2, 0.65) : '0';
       } catch (_) {}
     });
 
