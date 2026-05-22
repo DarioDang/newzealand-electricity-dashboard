@@ -488,7 +488,6 @@ function renderTrendChart(rows) {
   watchResize(containerId);
 }
 
-
 /* ============================================================
    Step 7C — NI/SI Price Spread
    ============================================================ */
@@ -560,3 +559,4 @@ function renderSpreadChart(rows) {
   animatedSpreadPlot(containerId, traces, layout, 150);
   watchResize(containerId);
 }
+
