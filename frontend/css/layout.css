@@ -219,6 +219,98 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+
+/* ── NZ SVG price map ───────────────────────────────────── */
+.nz-map-shell {
+  width: 100%;
+  height: clamp(480px, 68vh, 700px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#nz-price-map {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  display: block;
+}
+
+.nz-region-path {
+  fill: rgba(20, 184, 166, 0.08);
+  stroke: rgba(94, 234, 212, 0.45);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.nz-map-line {
+  stroke: rgba(148, 163, 184, 0.75);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.nz-map-dot {
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 5px rgba(94, 234, 212, 0.7))
+}
+
+.nz-map-dot-pulse {
+  stroke: rgba(94, 234, 212, 0.75);
+  stroke-width: 1.4;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nz-dot-pulse 2.2s ease-out infinite;
+  vector-effect: non-scaling-stroke;
+}
+
+@keyframes nz-dot-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  70% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(2.3);
+    opacity: 0;
+  }
+}
+
+.nz-map-label-box {
+  fill: rgba(13, 21, 32, 0.96);
+  stroke: rgba(94, 234, 212, 0.5);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.nz-map-label-name {
+  fill: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.nz-map-label-price {
+  fill: #5eead4;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.nz-map-empty {
+  fill: rgba(203, 213, 225, 0.75);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-anchor: middle;
+}
  
 /* ── Footer ────────────────────────────────────────────── */
 .dash-footer {
