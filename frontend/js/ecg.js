@@ -31,23 +31,63 @@ function initECG() {
   }
 
   // ── ECG path builder ─────────────────────────────────────
-  function buildPath(W, H) {
-    const midY  = H * 0.52;
-    const spike = H * 0.30;
-    const pts = [
-      [0,        midY],
-      [W * 0.18, midY],
-      [W * 0.25, midY - H * 0.04],   // P wave
-      [W * 0.31, midY],
-      [W * 0.36, midY + H * 0.03],   // Q
-      [W * 0.41, midY - spike],       // R spike
-      [W * 0.45, midY + H * 0.12],   // S dip
-      [W * 0.51, midY],
-      [W * 0.57, midY - H * 0.06],   // T wave
-      [W * 0.66, midY],
-      [W,        midY],
+  function buildPath(W, H, variant = 0) {
+    const midY = H * 0.52;
+
+    const patterns = [
+      {
+        spike: 0.30,
+        qDip: 0.03,
+        sDip: 0.12,
+        pWave: 0.04,
+        tWave: 0.06,
+        shift: 0.00,
+      },
+      {
+        spike: 0.24,
+        qDip: 0.04,
+        sDip: 0.09,
+        pWave: 0.03,
+        tWave: 0.08,
+        shift: -0.02,
+      },
+      {
+        spike: 0.34,
+        qDip: 0.025,
+        sDip: 0.14,
+        pWave: 0.05,
+        tWave: 0.05,
+        shift: 0.015,
+      },
+      {
+        spike: 0.27,
+        qDip: 0.035,
+        sDip: 0.10,
+        pWave: 0.035,
+        tWave: 0.075,
+        shift: 0.025,
+      },
     ];
-    return 'M ' + pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' L ');
+
+    const p = patterns[variant % patterns.length];
+
+    const pts = [
+      [0, midY],
+      [W * 0.16, midY],
+      [W * (0.24 + p.shift), midY - H * p.pWave],
+      [W * 0.30, midY],
+      [W * 0.35, midY + H * p.qDip],
+      [W * (0.41 + p.shift), midY - H * p.spike],
+      [W * 0.46, midY + H * p.sDip],
+      [W * 0.52, midY],
+      [W * 0.60, midY - H * p.tWave],
+      [W * 0.70, midY],
+      [W, midY],
+    ];
+
+    return 'M ' + pts
+      .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+      .join(' L ');
   }
 
   // ── Create one SVG per card ───────────────────────────────
@@ -75,7 +115,7 @@ function initECG() {
     `;
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', buildPath(W, H));
+    path.setAttribute('d', buildPath(W, H, idx));
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', '#14b8a6');
     path.setAttribute('stroke-width', '1.2');
@@ -134,7 +174,8 @@ function initECG() {
 
       // Active — compute progress 0→1 within this card's window
       const rawT  = (elapsed - cs) / SWEEP_DUR;
-      const drawT = easeInOut(rawT);
+      const cardSpeedShape = 1 + idx * 0.035;
+      const drawT = easeInOut(Math.min(Math.pow(rawT, cardSpeedShape), 1));
 
       // Draw line left to right
       path.style.strokeDashoffset = len * (1 - drawT);
@@ -152,7 +193,11 @@ function initECG() {
         opacity = 1 - (rawT - 0.88) / 0.12;
       }
 
-      const finalOp = Math.max(0, Math.min(1, opacity)) * MAX_OPACITY;
+      const cardOpacityBoost = 1 + (idx % 3) * 0.08;
+      const finalOp =
+        Math.max(0, Math.min(1, opacity)) *
+        MAX_OPACITY *
+        cardOpacityBoost;
 
       path.style.opacity = finalOp;
 
