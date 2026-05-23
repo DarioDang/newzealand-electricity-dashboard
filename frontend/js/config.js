@@ -10,9 +10,9 @@ const CONFIG = {
   // Change this ONE line when you deploy FastAPI to production.
   // Local dev:   "http://localhost:8000"
   // Production:  "https://your-api.onrender.com"  (or wherever)
-  API_BASE = window.location.hostname === "localhost"
+  API_BASE: window.location.hostname === "localhost"
     ? "http://localhost:8000"
-    : "https://newzealand-electricity-dashboard.netlify.app",
+    : "https://nz-electricity-dashboard.onrender.com",
 
   // ── Refresh interval ────────────────────────────────────
   // How often the dashboard polls the API for new data (ms).
