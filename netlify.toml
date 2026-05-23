@@ -1,6 +1,3 @@
 [build]
   publish = "frontend"
   command = "echo 'static site, no build'"
-
-[build.environment]
-  PYTHON_VERSION = "skip"
