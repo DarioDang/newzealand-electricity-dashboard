@@ -12,7 +12,7 @@ const CONFIG = {
   // Production:  "https://your-api.onrender.com"  (or wherever)
   API_BASE = window.location.hostname === "localhost"
     ? "http://localhost:8000"
-    : "https://nz-electricity-dashboard.onrender.com",
+    : "https://newzealand-electricity-dashboard.netlify.app",
 
   // ── Refresh interval ────────────────────────────────────
   // How often the dashboard polls the API for new data (ms).
