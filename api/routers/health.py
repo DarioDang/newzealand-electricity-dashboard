@@ -8,7 +8,7 @@ from api.models import HealthCheck
 
 router = APIRouter()
 
-@router.get("/health", methods=["GET", "HEAD"], response_model=HealthCheck)
+@router.api_route("/health", methods=["GET", "HEAD"], response_model=HealthCheck)
 def health_check():
     """
     Health check endpoint.
