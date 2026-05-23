@@ -34,3 +34,7 @@ plotly==6.7.0
 
 # Testing
 pytest==8.3.4
+
+# FastAPI
+fastapi
+uvicorn[standard]
