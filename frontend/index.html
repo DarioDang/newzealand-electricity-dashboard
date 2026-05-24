@@ -4,8 +4,122 @@
     <meta charset="UTF-8" />
     <meta name = "viewport" content = "width=device-width, initial-scale=1.0" />
     <title>NZ Electricity Dashboard</title>
-    <meta name="description" content="Live New Zealand Electricity Market Dashboard" />
+    <meta name="description"
+          content="Real-time New Zealand electricity market dashboard. Track wholesale prices across 14 grid zones, 
+          carbon intensity (g/kWh), renewable generation %, NI/SI price spread, and grid reserves — updated every 
+          30 minutes." 
+    />
+    <meta name="keywords"
+          content="New Zealand electricity dashboard, NZ electricity prices, NZ grid live, electricity market New Zealand, 
+          carbon intensity NZ, renewable energy New Zealand, wholesale electricity prices, NZ electricity market data, 
+          electricity price Auckland, electricity price Wellington" 
+    />
+    <meta name="author" content="Dario Dang" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://newzealand-electricity-dashboard.netlify.app" />
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://newzealand-electricity-dashboard.netlify.app" />
+    <meta property="og:title"       content="NZ Electricity Dashboard — Live Grid Prices & Carbon Intensity" />
+    <meta property="og:description" content="Real-time New Zealand electricity market data across 14 grid zones. Wholesale 
+        prices, carbon intensity, renewable generation % and grid reserves — updated every 30 minutes." />
+    <meta property="og:image"       content="https://newzealand-electricity-dashboard.netlify.app/static/preview.png" />
+    <meta property="og:image:width"  content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale"      content="en_NZ" />
+    <meta property="og:site_name"   content="NZ Electricity Dashboard" />
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:url"         content="https://newzealand-electricity-dashboard.netlify.app" />
+    <meta name="twitter:title"       content="NZ Electricity Dashboard — Live Grid Prices & Carbon Intensity" />
+    <meta name="twitter:description" content="Real-time NZ electricity prices, carbon intensity and renewable generation across 14 grid zones." />
+    <meta name="twitter:image"       content="https://newzealand-electricity-dashboard.netlify.app/static/preview.png" />
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "New Zealand Electricity Market Data",
+        "description": "Real-time wholesale electricity prices, carbon intensity and renewable generation data across 14 New Zealand grid zones, sourced from the em6 API and updated every 30 minutes.",
+        "url": "https://newzealand-electricity-dashboard.netlify.app",
+        "keywords": [
+          "New Zealand electricity",
+          "NZ grid prices",
+          "carbon intensity New Zealand",
+          "renewable energy NZ",
+          "wholesale electricity prices NZ"
+        ],
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "temporalCoverage": "2024/..",
+        "spatialCoverage": {
+          "@type": "Place",
+          "name": "New Zealand",
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": -41.0,
+            "longitude": 174.0
+          }
+        },
+        "creator": {
+          "@type": "Person",
+          "name": "Dario Dang",
+          "url": "https://github.com/DarioDang"
+        },
+        "provider": {
+          "@type": "Organization",
+          "name": "em6",
+          "url": "https://www.em6.co.nz/"
+        },
+        "distribution": {
+          "@type": "DataDownload",
+          "encodingFormat": "application/json",
+          "contentUrl": "https://newzealand-electricity-dashboard.netlify.app"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "NZ Electricity Dashboard",
+        "url": "https://newzealand-electricity-dashboard.netlify.app",
+        "description": "Live New Zealand electricity market dashboard showing wholesale prices, carbon intensity, renewable generation and grid reserves across 14 grid zones.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "author": {
+          "@type": "Person",
+          "name": "Dario Dang",
+          "url": "https://github.com/DarioDang"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "NZD"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "NZ Electricity Dashboard",
+            "item": "https://newzealand-electricity-dashboard.netlify.app"
+          }
+        ]
+      }
+    ]
+    </script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
     <style>
+      .seo-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
       /* ── Loading screen ────────────────────────────────────── */
       .page-loader {
         position: fixed;
@@ -107,7 +221,6 @@
         }
       }
     </style>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/reset.css" />
     <link rel="stylesheet" href="css/layout.css" />
@@ -116,6 +229,26 @@
     <link rel="stylesheet" href="css/responsive.css" />
 </head>
 <body>
+    <div class="seo-text" aria-hidden="true">
+      <h1>New Zealand Electricity Dashboard — Live Grid Data</h1>
+      <p>
+        This dashboard provides real-time New Zealand electricity market data including
+        wholesale electricity prices ($/MWh) across 14 grid zones: Auckland (OTA),
+        Wellington (HAY), Christchurch (ISL), Benmore (BEN), Waikato, Huntly, and more.
+        Data is sourced from the em6 API and refreshed every 30 minutes via an automated
+        GitHub Actions pipeline backed by Neon Postgres and dbt.
+      </p>
+      <p>
+        Key metrics tracked: renewable generation percentage, carbon intensity in gCO₂/kWh,
+        North Island and South Island price spread, fast instantaneous reserve (FIR) and
+        slow instantaneous reserve (SIR) prices, and 30-day price trends.
+      </p>
+      <p>
+        Built with FastAPI, Plotly, and vanilla JavaScript. Open source on GitHub.
+        Ideal for anyone researching New Zealand electricity prices, carbon emissions,
+        or renewable energy generation data.
+      </p>
+    </div>
     <div id="page-loader" class="page-loader">
       <div class="loader-card">
         <div class="loader-ring"></div>
