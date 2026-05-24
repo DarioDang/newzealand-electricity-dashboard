@@ -29,8 +29,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://your-site-name.netlify.app",
-        "http://localhost:*",  # for local dev
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://[::1]:3000",
+        "https://newzealand-electricity-dashboard.netlify.app",
     ],
     allow_methods=["GET"],
     allow_headers=["*"],
