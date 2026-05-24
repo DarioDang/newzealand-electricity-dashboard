@@ -171,6 +171,65 @@ function clearMapOverlays() {
   if (debugGroup) debugGroup.innerHTML = "";
   if (legendGroup) legendGroup.innerHTML = "";
 }
+const SVG_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function getSvgCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+
+    const cached = JSON.parse(raw);
+
+    if (!cached.timestamp || !cached.data) {
+      return null;
+    }
+
+    if (Date.now() - cached.timestamp > SVG_CACHE_TTL) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    return cached.data;
+  } catch (error) {
+    console.warn(`[NZ Map] SVG cache read failed: ${key}`, error);
+    return null;
+  }
+}
+
+function setSvgCache(key, data) {
+  try {
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        timestamp: Date.now(),
+        data,
+      })
+    );
+  } catch (error) {
+    console.warn(`[NZ Map] SVG cache write failed: ${key}`, error);
+  }
+}
+
+async function fetchSvgWithCache(url, cacheKey) {
+  const cachedSvg = getSvgCache(cacheKey);
+
+  if (cachedSvg) {
+    console.log(`✅ SVG cache hit: ${cacheKey}`);
+    return cachedSvg;
+  }
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to load SVG: ${url}`);
+  }
+
+  const svgText = await response.text();
+  setSvgCache(cacheKey, svgText);
+
+  console.log(`🔄 SVG loaded fresh: ${cacheKey}`);
+  return svgText;
+}
 
 async function initNZPriceMap() {
   await loadNZMapSvg();
@@ -184,13 +243,11 @@ async function loadNZMapSvg() {
   if (!baseGroup) return;
 
   try {
-    const response = await fetch(NZ_PRICE_MAP.svgPath);
+    const svgText = await fetchSvgWithCache(
+      NZ_PRICE_MAP.svgPath,
+      "cache_nz_svg_v1"
+    );
 
-    if (!response.ok) {
-      throw new Error(`Failed to load ${NZ_PRICE_MAP.svgPath}`);
-    }
-
-    const svgText = await response.text();
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
     const sourceSvg = svgDoc.querySelector("svg");
