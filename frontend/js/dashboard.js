@@ -3,6 +3,27 @@
    Main app entry point — fetches data and wires every component.
    ============================================================ */
 
+// ── Loading progress helpers ────────────────────────────────
+function setProgress(percent, message) {
+  if (window.setLoaderTarget) {
+    window.setLoaderTarget(percent, message);
+  }
+}
+
+function completeProgress() {
+  if (window.finishLoader) {
+    window.finishLoader();
+  }
+}
+
+function nextPaint() {
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
+}
+
 // ── Helpers ─────────────────────────────────────────────────
 
 function safeFloat(val, fallback = 0) {
@@ -465,15 +486,28 @@ function renderProfile() {
 // ── Main init ────────────────────────────────────────────────
 
 async function init() {
+  let carbonForGauge = null;
+
   startClock();
 
-  if (window.initNZPriceMap) {
-    await window.initNZPriceMap();
-  }
-
   try {
+    setProgress(15, "Loading NZ map...");
+    await nextPaint();
+
+    if (window.initNZPriceMap) {
+      await window.initNZPriceMap();
+    }
+
+    setProgress(35, "Loading energy data...");
+    await nextPaint();
+
     const data = await API.fetchAll();
-    console.log('✅ API data loaded:', data);
+    console.log("✅ API data loaded:", data);
+
+    carbonForGauge = data.carbon;
+
+    setProgress(55, "Rendering key metrics...");
+    await nextPaint();
 
     updateHeader(data.carbon);
     updateRenewableCard(data.carbon);
@@ -481,45 +515,77 @@ async function init() {
     updateSpreadCard(data.spread);
     updateReservesCard(data.reserves);
 
-    renderGauge(data.carbon);
+    setProgress(65, "Preparing carbon gauge...");
+    await nextPaint();
 
-    renderPrice24Chart(data.priceNodes);
+    setProgress(75, "Rendering price map...");
+    await nextPaint();
 
     if (window.renderNZPriceMap) {
       window.renderNZPriceMap(data.priceRegions || []);
     }
 
+    setProgress(88, "Rendering charts...");
+    await nextPaint();
+
+    renderPrice24Chart(data.priceNodes);
     renderSummaryChart(data.priceSummary);
     renderTrendChart(data.carbonTrend);
     renderSpreadChart(data.spreadTrend);
+
+    setProgress(95, "Building dashboard sections...");
+    await nextPaint();
+
     renderPipeline();
     renderProfile();
 
     setTimeout(initChartAnimations, 80);
 
-  } catch (err) {
-    console.error('❌ Dashboard init error:', err);
-  } finally {
-    const loading   = document.getElementById('loading-screen');
-    const dashboard = document.getElementById('dashboard');
-    if (loading)   loading.style.display = 'none';
-    if (dashboard) dashboard.classList.remove('hidden');
-    document.body.classList.add('ready');
+    const dashboard = document.getElementById("dashboard");
+    if (dashboard) dashboard.classList.remove("hidden");
 
-    setInterval(async () => {
-      try {
-        const live = await API.fetchLive();
-        updateHeader(live.carbon);
-        updateRenewableCard(live.carbon);
-        updateCarbonCard(live.carbon);
-        updateSpreadCard(live.spread);
-        updateReservesCard(live.reserves);
-        console.log('🔄 Live data refreshed');
-      } catch (err) {
-        console.warn('⚠️ Refresh failed:', err);
-      }
-    }, CONFIG.REFRESH_INTERVAL_MS);
+    document.body.classList.add("ready");
+
+    window.addEventListener(
+      "dashboard-loader-hidden",
+      () => {
+        if (carbonForGauge) {
+          renderGauge(carbonForGauge);
+        }
+      },
+      { once: true }
+    );
+
+    setProgress(100, "Dashboard ready");
+    completeProgress();
+
+  } catch (err) {
+    console.error("❌ Dashboard init error:", err);
+
+    const dashboard = document.getElementById("dashboard");
+    if (dashboard) dashboard.classList.remove("hidden");
+
+    document.body.classList.add("ready");
+
+    setProgress(100, "Unable to load latest data");
+    completeProgress();
   }
+
+  setInterval(async () => {
+    try {
+      const live = await API.fetchLive();
+
+      updateHeader(live.carbon);
+      updateRenewableCard(live.carbon);
+      updateCarbonCard(live.carbon);
+      updateSpreadCard(live.spread);
+      updateReservesCard(live.reserves);
+
+      console.log("🔄 Live data refreshed");
+    } catch (err) {
+      console.warn("⚠️ Refresh failed:", err);
+    }
+  }, CONFIG.REFRESH_INTERVAL_MS);
 }
 
 document.addEventListener('DOMContentLoaded', init);
