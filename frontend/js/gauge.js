@@ -192,7 +192,7 @@ function renderGauge(carbon) {
           <text x="200" y="22" text-anchor="middle"
             font-size="20" font-weight="700" fill="white"
             font-family="Space Mono,monospace"
-            id="gauge-num">${carbonVal.toFixed(1)}</text>
+            id="gauge-num">0.0</text>
 
           <text x="200" y="42" text-anchor="middle"
             font-size="10" fill="#7a9bb5"
@@ -264,23 +264,35 @@ function renderGauge(carbon) {
           <div class="gauge-stat-label">RENEWABLE</div>
         </div>
       </div>
-    </div>
+    </div>`
+    const numberEl = container.querySelector("#gauge-num");
+    animateGaugeNumber(numberEl, carbonVal, 1600, 300);
+}
 
-    <script>
-      // Counter: 0 → carbonVal in sync with arc fill (1.6s)
-      (function() {
-        const el  = document.getElementById('gauge-num');
-        const target = ${carbonVal};
-        const dur = 1600;
-        const t0  = performance.now();
-        function tick(now) {
-          const t    = Math.min((now - t0) / dur, 1);
-          const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-          if (el) el.textContent = (target * ease).toFixed(1);
-          if (t < 1) requestAnimationFrame(tick);
-          else if (el) el.textContent = target.toFixed(1);
-        }
-        setTimeout(() => requestAnimationFrame(tick), 300);
-      })();
-    </script>`;
+function animateGaugeNumber(el, target, duration = 1600, delay = 300) {
+  if (!el) return;
+
+  el.textContent = "0.0";
+
+  const startTime = performance.now() + delay;
+
+  function tick(now) {
+    if (now < startTime) {
+      requestAnimationFrame(tick);
+      return;
+    }
+
+    const t = Math.min((now - startTime) / duration, 1);
+    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+
+    el.textContent = (target * ease).toFixed(1);
+
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      el.textContent = target.toFixed(1);
+    }
+  }
+
+  requestAnimationFrame(tick);
 }
