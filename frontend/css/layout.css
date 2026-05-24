@@ -16,32 +16,6 @@
   display: none;
 }
  
-/* ── Loading screen ────────────────────────────────────── */
-#loading-screen {
-  position: fixed;
-  inset: 0;
-  background: var(--bg-page);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  z-index: 9999;
-}
- 
-.loading-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--teal);
-  display: inline-block;
-  animation: loadingBounce 1.4s ease-in-out infinite both;
-}
- 
-.loading-dot:nth-child(1) { animation-delay: 0s; }
-.loading-dot:nth-child(2) { animation-delay: 0.16s; }
-.loading-dot:nth-child(3) { animation-delay: 0.32s; }
- 
 /* Override — show dots in a row */
 #loading-screen {
   flex-direction: column;
