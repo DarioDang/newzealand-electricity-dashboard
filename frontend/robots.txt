@@ -1,0 +1,8 @@
+# robots.txt — NZ Electricity Dashboard
+# Replace YOUR-DOMAIN.netlify.app with your actual domain.
+
+User-agent: *
+Allow: /
+
+# Point Googlebot to the sitemap
+Sitemap: https://YOUR-DOMAIN.netlify.app/sitemap.xml
