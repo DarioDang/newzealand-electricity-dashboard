@@ -32,9 +32,10 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://[::1]:3000",
+        "http://[::]:3000",
         "https://newzealand-electricity-dashboard.netlify.app",
     ],
-    allow_methods=["GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
