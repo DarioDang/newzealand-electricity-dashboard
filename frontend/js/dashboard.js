@@ -525,15 +525,23 @@ async function init() {
       window.renderNZPriceMap(data.priceRegions || []);
     }
 
-    setProgress(88, "Rendering charts...");
+    setProgress(82, "Rendering price chart...");
     await nextPaint();
-
     renderPrice24Chart(data.priceNodes);
+
+    setProgress(86, "Rendering market summary...");
+    await nextPaint();
     renderSummaryChart(data.priceSummary);
+
+    setProgress(90, "Rendering carbon trend...");
+    await nextPaint();
     renderTrendChart(data.carbonTrend);
+
+    setProgress(94, "Rendering spread chart...");
+    await nextPaint();
     renderSpreadChart(data.spreadTrend);
 
-    setProgress(95, "Building dashboard sections...");
+    setProgress(96, "Building dashboard sections...");
     await nextPaint();
 
     renderPipeline();

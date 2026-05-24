@@ -5,6 +5,9 @@
    Low opacity so it acts as a background effect only.
    ============================================================ */
 
+let ecgResizeBound = false;
+let ecgResizeTimer = null;
+
 function initECG() {
   const cards = document.querySelectorAll('.kpi-card');
   if (!cards.length) return;
@@ -217,13 +220,24 @@ function initECG() {
   requestAnimationFrame(loop);
 
   // Rebuild on resize
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(initECG, 300);
-  });
+  if (!ecgResizeBound) {
+    ecgResizeBound = true;
+
+    window.addEventListener('resize', () => {
+      clearTimeout(ecgResizeTimer);
+      ecgResizeTimer = setTimeout(initECG, 600);
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initECG, 900);
+  const startECG = () => {
+    initECG();
+  };
+
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(startECG, { timeout: 8000 });
+  } else {
+    setTimeout(startECG, 6000);
+  }
 });

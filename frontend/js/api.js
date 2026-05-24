@@ -15,6 +15,7 @@ const CACHE_TTL = {
   spreadTrend: 15 * 60 * 1000,  // 15 minutes
   reserves: 5 * 60 * 1000,
   spreadLatest: 5 * 60 * 1000,
+  dashboard: 5 * 60 * 1000,
 };
 
 function getCache(key) {
@@ -90,21 +91,6 @@ async function fetchWithCache(cacheKey, url, ttlMs) {
 }
 
 const API = {
-  async _get(endpoint) {
-    const url = `${CONFIG.API_BASE}${endpoint}`;
-
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { "Accept": "application/json" },
-    });
-
-    if (!res.ok) {
-      throw new Error(`API ${endpoint} returned ${res.status}`);
-    }
-
-    return res.json();
-  },
-
   async getCarbonLatest() {
     return fetchWithCache(
       "cache_carbon_latest",
@@ -170,38 +156,11 @@ const API = {
   },
 
   async fetchAll() {
-    const [
-      carbon,
-      reserves,
-      spread,
-      priceNodes,
-      priceRegions,
-      carbonTrend,
-      spreadTrend,
-      priceSummary,
-    ] = await Promise.allSettled([
-      this.getCarbonLatest(),
-      this.getReservesLatest(),
-      this.getSpreadLatest(),
-      this.getPriceNodes(48),
-      this.getPriceRegions(),
-      this.getCarbonTrend(192),
-      this.getSpreadTrend(48),
-      this.getPriceSummary(30),
-    ]);
-
-    const extract = r => r.status === "fulfilled" ? r.value : null;
-
-    return {
-      carbon: extract(carbon),
-      reserves: extract(reserves),
-      spread: extract(spread),
-      priceNodes: extract(priceNodes),
-      priceRegions: extract(priceRegions),
-      carbonTrend: extract(carbonTrend),
-      spreadTrend: extract(spreadTrend),
-      priceSummary: extract(priceSummary),
-    };
+    return fetchWithCache(
+      "cache_dashboard_all",
+      `${CONFIG.API_BASE}/api/dashboard`,
+      CACHE_TTL.dashboard
+    );
   },
 
   async fetchLive() {
