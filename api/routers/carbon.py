@@ -15,40 +15,61 @@ router = APIRouter()
 def get_carbon_latest():
     """
     Latest carbon intensity and renewable metrics.
-    Powers: renewable gauge, carbon reading, grid status pannel.
+    Reads from raw carbon_intensity table — updated every 30 min by fast_ingest.
+    Powers: renewable gauge, carbon KPI card, grid status panel.
     """
 
     result = query_one("""
         SELECT
-            timestamp_utc,
-            timestamp_nzt,
+            timestamp                           AS timestamp_utc,
+            timestamp AT TIME ZONE 'Pacific/Auckland'
+                                                AS timestamp_nzt,
             trading_period,
-            period_label,
+            CONCAT('TP', trading_period)        AS period_label,
             nz_carbon_gkwh,
             nz_carbon_change_gkwh,
             nz_carbon_t,
-            renewable_pct,
-            grid_status,
-            carbon_status,
-            carbon_trend,
-            vs_month_avg_pct,
+            nz_renewable                        AS renewable_pct,
+            CASE
+                WHEN nz_renewable >= 0.80 THEN 'Very Clean'
+                WHEN nz_renewable >= 0.60 THEN 'Clean'
+                WHEN nz_renewable >= 0.40 THEN 'Moderate'
+                ELSE 'Dirty'
+            END                                 AS grid_status,
+            CASE
+                WHEN nz_carbon_gkwh < 50  THEN 'Very Low'
+                WHEN nz_carbon_gkwh < 80  THEN 'Low'
+                WHEN nz_carbon_gkwh < 110 THEN 'Moderate'
+                WHEN nz_carbon_gkwh < 130 THEN 'High'
+                ELSE 'Very High'
+            END                                 AS carbon_status,
+            CASE
+                WHEN nz_carbon_change_gkwh < -1 THEN 'Improving'
+                WHEN nz_carbon_change_gkwh >  1 THEN 'Worsening'
+                ELSE 'Stable'
+            END                                 AS carbon_trend,
+            ROUND(
+                (nz_carbon_gkwh - current_month_avg_gkwh)
+                / NULLIF(current_month_avg_gkwh, 0) * 100,
+                1
+            )                                   AS vs_month_avg_pct,
             max_24hrs_gkwh,
             min_24hrs_gkwh,
             current_month_avg_gkwh,
             current_year_avg_gkwh,
             pct_current_year_gkwh,
-            position_in_24hr_range
-        FROM marts.mart_carbon_intensity
-        ORDER BY timestamp_utc DESC
+            NULL                                AS position_in_24hr_range
+        FROM carbon_intensity
+        ORDER BY timestamp DESC
         LIMIT 1
     """)
 
     if not result:
         raise HTTPException(
-            status_code = 404,
-            detail = "No carbon intensity data available"
+            status_code=404,
+            detail="No carbon intensity data available"
         )
-    
+
     return result 
 
 @router.get("/carbon/trend", response_model=list[CarbonTrendPoint])
