@@ -39,4 +39,4 @@ jobs:
           NEON_DB_USER:     ${{ secrets.NEON_DB_USER }}
           NEON_DB_PASSWORD: ${{ secrets.NEON_DB_PASSWORD }}
           NEON_DB_SSLMODE:  require
-        run: python piipeline/flows/ingest_regional_fast.py
+        run: python pipeline/flows/ingest_regional_fast.py
