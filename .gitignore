@@ -7,5 +7,6 @@ notebooks
 nz-grid-streamlit/backup-script
 frontent/css/backup
 frontend/js/backup-script
-command-script-local-run.txt.DS_Store
+command-script-local-run.txt
+.DS_Store
 **/.DS_Store
