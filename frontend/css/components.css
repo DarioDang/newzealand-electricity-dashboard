@@ -7,15 +7,22 @@
    ══════════════════════════════════════════════════════════ */
 
 .header-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
   font-family: var(--font-mono);
   font-size: var(--text-lg);
   font-weight: 700;
-  background: linear-gradient(90deg, var(--teal), #10b981, var(--teal));
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 4s linear infinite;
+  color: var(--text-main);
+}
+
+.header-logo-img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(20, 184, 166, 0.45));
 }
 
 .header-sub {
