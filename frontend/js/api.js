@@ -168,12 +168,14 @@ const API = {
       this.getCarbonLatest(),
       this.getReservesLatest(),
       this.getSpreadLatest(),
+      this.getPriceRegions(),
     ]);
 
     return {
       carbon: carbon.status === "fulfilled" ? carbon.value : null,
       reserves: reserves.status === "fulfilled" ? reserves.value : null,
       spread: spread.status === "fulfilled" ? spread.value : null,
+      priceRegions: priceRegions.status === "fulfilled" ? priceRegions.value : null,
     };
   },
 };

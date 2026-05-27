@@ -67,10 +67,31 @@ function updateHeader(carbon) {
     if (status.toLowerCase().includes('dirty'))    chip.classList.add('dirty');
     if (status.toLowerCase().includes('moderate')) chip.classList.add('moderate');
   }
+
   const sub = document.getElementById('gauge-subtitle');
   if (sub) sub.textContent = `Last updated ${ts}`;
   const p24 = document.getElementById('price24-subtitle');
   if (p24) p24.textContent = `Last updated ${ts}`;
+}
+
+// ── Map subtitle — uses regional prices timestamp (30-min live) ─
+
+function updateMapSubtitle(priceRegions) {
+  const sub = document.getElementById('map-subtitle');
+  if (!sub) return;
+
+  if (!priceRegions || priceRegions.length === 0) {
+    sub.textContent = '14 grid zones · no data';
+    return;
+  }
+
+  // Get latest timestamp from regional prices array
+  const latest = priceRegions.reduce((max, r) =>
+    r.timestamp_utc > max ? r.timestamp_utc : max,
+    priceRegions[0].timestamp_utc
+  );
+
+  sub.textContent = `Last updated ${toNZT(latest)}`;
 }
 
 // ── Step 3B: KPI Card 1 — Renewable Generation ──────────────
@@ -524,6 +545,7 @@ async function init() {
     if (window.renderNZPriceMap) {
       window.renderNZPriceMap(data.priceRegions || []);
     }
+    updateMapSubtitle(data.priceRegions); 
 
     setProgress(82, "Rendering price chart...");
     await nextPaint();
@@ -588,6 +610,11 @@ async function init() {
       updateCarbonCard(live.carbon);
       updateSpreadCard(live.spread);
       updateReservesCard(live.reserves);
+
+      if (live.priceRegions && window.renderNZPriceMap) {
+        window.renderNZPriceMap(live.priceRegions);
+      }
+      updateMapSubtitle(live.priceRegions);  
 
       console.log("🔄 Live data refreshed");
     } catch (err) {
