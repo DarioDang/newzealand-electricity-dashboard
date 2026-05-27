@@ -1,9 +1,3 @@
-# ============================================================
-# api/routers/dashboard.py
-# Endpoint:
-#   GET /api/dashboard → combined dashboard payload
-# ============================================================
-
 import time
 from fastapi import APIRouter
 
@@ -18,44 +12,41 @@ from api.routers.spread import get_spread_latest, get_spread_trend
 
 router = APIRouter()
 
-DASHBOARD_CACHE = {
-    "timestamp": 0,
-    "data": None,
+CACHE = {
+    "live":  {"timestamp": 0, "data": None},
+    "daily": {"timestamp": 0, "data": None},
 }
 
-DASHBOARD_CACHE_TTL = 5 * 60  # 5 minutes
+LIVE_TTL  = 2 * 60   
+DAILY_TTL = 5 * 60   
 
 
 @router.get("/dashboard")
 def get_dashboard():
-    """
-    Combined payload for the frontend dashboard.
-
-    This reduces the initial frontend load from many API calls
-    into one request:
-      GET /api/dashboard
-    """
-
     now = time.time()
 
     if (
-        DASHBOARD_CACHE["data"] is not None
-        and now - DASHBOARD_CACHE["timestamp"] < DASHBOARD_CACHE_TTL
+        CACHE["live"]["data"] is None
+        or now - CACHE["live"]["timestamp"] >= LIVE_TTL
     ):
-        return DASHBOARD_CACHE["data"]
+        CACHE["live"]["data"] = {
+            "priceRegions": get_regional_prices(),
+            "carbon":       get_carbon_latest(),   
+        }
+        CACHE["live"]["timestamp"] = now
 
-    data = {
-        "carbon": get_carbon_latest(),
-        "reserves": get_reserves_latest(),
-        "spread": get_spread_latest(),
-        "priceNodes": get_node_prices(hours=48),
-        "priceRegions": get_regional_prices(),
-        "carbonTrend": get_carbon_trend(hours=192),
-        "spreadTrend": get_spread_trend(hours=48),
-        "priceSummary": get_daily_summary(days=30),
-    }
+    if (
+        CACHE["daily"]["data"] is None
+        or now - CACHE["daily"]["timestamp"] >= DAILY_TTL
+    ):
+        CACHE["daily"]["data"] = {
+            "reserves":    get_reserves_latest(),
+            "spread":      get_spread_latest(),
+            "priceNodes":  get_node_prices(hours=48),
+            "carbonTrend": get_carbon_trend(hours=192),
+            "spreadTrend": get_spread_trend(hours=48),
+            "priceSummary":get_daily_summary(days=30),
+        }
+        CACHE["daily"]["timestamp"] = now
 
-    DASHBOARD_CACHE["timestamp"] = now
-    DASHBOARD_CACHE["data"] = data
-
-    return data
+    return {**CACHE["daily"]["data"], **CACHE["live"]["data"]}
