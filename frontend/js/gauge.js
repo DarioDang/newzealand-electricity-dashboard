@@ -1,7 +1,7 @@
 /* ============================================================
    js/gauge.js
    Carbon gauge SVG — arc and needle animate via CSS keyframes.
-   More reliable than JS transitions for SVG elements.
+   More reliable than JS transitions for SVG elements....
    ============================================================ */
 
 function renderGauge(carbon) {
@@ -15,14 +15,10 @@ function renderGauge(carbon) {
   const statusTxt    = carbon ? (carbon.carbon_status || '')               : '';
 
   // ── Same math as Streamlit ───────────────────────────────
-  const ARC_LEN     = CONFIG.GAUGE_ARC_LENGTH;    // 527.8
-  const SCALE       = CONFIG.GAUGE_VISUAL_SCALE;  // 0.54
-  const MAX_VAL     = CONFIG.GAUGE_VALUE_MAX;      // 150
+  const MAX_VAL = CONFIG.GAUGE_VALUE_MAX;
 
-  let rawProgress   = Math.min(Math.max(carbonVal / MAX_VAL, 0), 1);
-  const gaugeProgress = rawProgress * SCALE;
-  const arcOffset     = Math.round((ARC_LEN * (1 - gaugeProgress)) * 10) / 10;
-  const needleAngle   = Math.round((-90 + gaugeProgress * 180) * 10) / 10;
+  const gaugeProgress = Math.min(Math.max(carbonVal / MAX_VAL, 0), 1);
+  const needleAngle = Math.round((-90 + gaugeProgress * 180) * 10) / 10;
 
   // ── Tick marks ───────────────────────────────────────────
   let ticks = '';
@@ -41,64 +37,45 @@ function renderGauge(carbon) {
 
   container.innerHTML = `
     <style>
-      /* Arc fill: from empty (527.8) → actual offset */
-      @keyframes arcFill_${uid} {
-        from { stroke-dashoffset: ${ARC_LEN}; }
-        to   { stroke-dashoffset: ${arcOffset}; }
-      }
-
       /* Needle: from -90deg (position 0) → actual angle */
       @keyframes needleSpin_${uid} {
         from { transform: rotate(-90deg); }
         to   { transform: rotate(${needleAngle}deg); }
       }
 
-        @keyframes valueFloat_${uid} {
-          0%, 100% {
-            transform: translateY(0);
-            opacity: 1;
-          }
-          50% {
-            transform: translateY(-3px);
-            opacity: 0.9;
-          }
-        }
-
-        .gauge-value-float-${uid} {
-          transform-box: fill-box;
-          transform-origin: center;
-          animation: valueFloat_${uid} 3s ease-in-out infinite;
-        }
-
-      /* Shimmer sweep */
-      @keyframes shimmerSweep_${uid} {
-        0% {
-          stroke-dashoffset: ${ARC_LEN};
+      .gauge-needle-${uid} {
+        transform-origin: 200px 230px;
+        transform-box: view-box;
+        transform: rotate(-90deg);
+        animation: needleSpin_${uid} 1.35s cubic-bezier(0.34,1.56,0.64,1) 0.45s forwards;
+      }
+      
+      @keyframes zoneFadeIn_${uid} {
+        from {
           opacity: 0;
+          filter: brightness(0.75);
         }
-
-        12% {
+        to {
           opacity: 0.95;
-        }
-
-        45% {
-          opacity: 0.95;
-        }
-
-        58% {
-          opacity: 0;
-        }
-
-        100% {
-          stroke-dashoffset: ${ARC_LEN - ARC_LEN * gaugeProgress};
-          opacity: 0;
+          filter: brightness(1);
         }
       }
 
-      /* Counter number fade in */
-      @keyframes numFade_${uid} {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+      .gauge-zone-${uid} {
+        opacity: 0;
+        animation: zoneFadeIn_${uid} 0.75s ease-out forwards;
+      }
+
+      .gauge-zone-green-${uid} {
+        animation-delay: 0.10s;
+      }
+
+      .gauge-zone-orange-${uid} {
+        animation-delay: 0.22s;
+      }
+
+      .gauge-zone-red-${uid} {
+        animation-delay: 0.34s;
       }
 
       /* Stats row items slide up */
@@ -107,29 +84,23 @@ function renderGauge(carbon) {
         to   { opacity: 1; transform: translateY(0); }
       }
 
-      .gauge-arc-fill-${uid} {
-        stroke-dasharray: ${ARC_LEN};
-        stroke-dashoffset: ${ARC_LEN};
-        animation: arcFill_${uid} 1.6s cubic-bezier(0.4,0,0.2,1) 0.3s forwards;
+      @keyframes metricPop_${uid} {
+        from {
+          opacity: 0;
+          transform: translateY(6px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
 
-      .gauge-needle-${uid} {
-        transform-origin: 200px 230px;
-        transform-box: view-box;
-        transform: rotate(-90deg);
-        animation: needleSpin_${uid} 1.8s cubic-bezier(0.34,1.56,0.64,1) 0.3s forwards;
+      .gauge-metric-${uid} {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: metricPop_${uid} 0.55s ease-out 0.25s both;
       }
 
-      .gauge-shimmer-${uid} {
-        stroke-dasharray: 60 ${ARC_LEN};
-        stroke-dashoffset: ${ARC_LEN};
-        opacity: 0;
-        animation: shimmerSweep_${uid} 4.8s cubic-bezier(0.4,0,0.2,1) 2.2s infinite;
-      }
-
-      .gauge-num-${uid} {
-        animation: numFade_${uid} 0.4s ease 0.5s both;
-      }
 
       .gauge-stat-${uid}:nth-child(1) {
         animation: statUp_${uid} 0.5s ease 1.2s both;
@@ -145,46 +116,14 @@ function renderGauge(carbon) {
     <div class="gauge-wrap">
       <svg viewBox="0 0 400 250" class="gauge-svg">
         <defs>
-          <linearGradient id="arcGrad_${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#10b981"/>
-            <stop offset="35%"  stop-color="#84cc16"/>
-            <stop offset="60%"  stop-color="#f59e0b"/>
-            <stop offset="80%"  stop-color="#f97316"/>
-            <stop offset="100%" stop-color="#ef4444"/>
-          </linearGradient>
-          <linearGradient id="shimGrad_${uid}" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
-            <stop offset="35%"  stop-color="#ccfff4" stop-opacity="0.25"/>
-            <stop offset="50%"  stop-color="#ffffff" stop-opacity="0.95"/>
-            <stop offset="65%"  stop-color="#ccfff4" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-          </linearGradient>
-          <filter id="arcGlow_${uid}">
-            <feGaussianBlur stdDeviation="3" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
           <filter id="needleGlow_${uid}">
             <feGaussianBlur stdDeviation="2.5" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
-          <filter id="shineGlow_${uid}">
-            <feGaussianBlur stdDeviation="3.2" result="b"/>
-            <feMerge>
-              <feMergeNode in="b"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <mask id="arcMask_${uid}">
-            <path d="M 32 230 A 168 168 0 0 1 368 230"
-              fill="none" stroke="white" stroke-width="30"
-              stroke-linecap="round"
-              stroke-dasharray="${ARC_LEN}"
-              stroke-dashoffset="${arcOffset}"/>
-          </mask>
         </defs>
 
         <!-- Value + status -->
-        <g class="gauge-num-${uid} gauge-value-float-${uid}">
+        <g class="gauge-metric-${uid}">
           <text x="200" y="0" text-anchor="middle"
             font-size="11" font-weight="700" fill="#6ee7b7"
             font-family="Space Mono,monospace">${statusTxt}</text>
@@ -204,20 +143,42 @@ function renderGauge(carbon) {
           fill="none" stroke="#1e3448"
           stroke-width="22" stroke-linecap="round"/>
 
-        <!-- Filled arc — CSS keyframe drives the animation -->
-        <path class="gauge-arc-fill-${uid}"
-          d="M 32 230 A 168 168 0 0 1 368 230"
-          fill="none" stroke="url(#arcGrad_${uid})"
-          stroke-width="22" stroke-linecap="round"
-          filter="url(#arcGlow_${uid})"/>
+        <!-- Carbon zones: 0–50 low, 50–100 medium, 100–150 high -->
+        <path
+          class="gauge-zone-${uid} gauge-zone-green-${uid}"
+          d="M 32 230 A 168 168 0 0 1 116 84.5"
+          fill="none"
+          stroke="#10b981"
+          stroke-width="22"
+          stroke-linecap="round"
+          opacity="0.95"/>
 
-        <!-- Shimmer -->
-        <path class="gauge-shimmer-${uid}"
-          d="M 32 230 A 168 168 0 0 1 368 230"
-          fill="none" stroke="url(#shimGrad_${uid})"
-          stroke-width="26" stroke-linecap="round"
-          mask="url(#arcMask_${uid})"
-          filter="url(#shineGlow_${uid})"/>
+        <path
+          class="gauge-zone-${uid} gauge-zone-orange-${uid}"
+          d="M 116 84.5 A 168 168 0 0 1 284 84.5"
+          fill="none"
+          stroke="#f59e0b"
+          stroke-width="22"
+          stroke-linecap="butt"
+          opacity="0.95"/>
+
+        <path
+          class="gauge-zone-${uid} gauge-zone-red-${uid}"
+          d="M 284 84.5 A 168 168 0 0 1 368 230"
+          fill="none"
+          stroke="#ef4444"
+          stroke-width="22"
+          stroke-linecap="butt"
+          opacity="0.95"/>
+        
+        <!-- Round cap only at the far right end -->
+        <circle
+          class="gauge-zone-${uid} gauge-zone-red-${uid}"
+          cx="368"
+          cy="230"
+          r="11"
+          fill="#ef4444"
+          opacity="0.95"/>
 
         <!-- Ticks -->
         ${ticks}
@@ -225,25 +186,25 @@ function renderGauge(carbon) {
         <!-- Labels -->
         <text x="60"  y="235" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">0</text>
-        <text x="86"  y="148" fill="#3d5a75" font-size="11"
+        <text x="116" y="120" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">50</text>
-        <text x="200" y="100"  fill="#3d5a75" font-size="11"
+        <text x="284" y="120" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">100</text>
-        <text x="314" y="155" fill="#3d5a75" font-size="11"
+        <text x="340" y="235" fill="#3d5a75" font-size="11"
           font-family="Space Mono,monospace" text-anchor="middle">150</text>
 
         <!-- Needle — CSS keyframe drives the spin -->
         <g class="gauge-needle-${uid}">
           <line x1="200" y1="238" x2="200" y2="98"
-            stroke="rgba(239,68,68,0.2)" stroke-width="5"
+            stroke="rgba(45,212,191,0.22)" stroke-width="5"
             stroke-linecap="round"/>
           <line x1="200" y1="238" x2="200" y2="98"
-            stroke="#ef4444" stroke-width="3"
+            stroke="#2dd4bf" stroke-width="3"
             stroke-linecap="round"
             filter="url(#needleGlow_${uid})"/>
           <circle cx="200" cy="230" r="12"
-            fill="#111d2e" stroke="#ef4444" stroke-width="2.5"/>
-          <circle cx="200" cy="230" r="5" fill="#ef4444"/>
+            fill="#111d2e" stroke="#2dd4bf" stroke-width="2.5"/>
+          <circle cx="200" cy="230" r="5" fill="#2dd4bf"/>
         </g>
       </svg>
 

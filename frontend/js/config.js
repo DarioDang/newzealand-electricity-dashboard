@@ -4,13 +4,24 @@
    Every other JS file imports from here — never hardcode URLs.
    ============================================================ */
 
+const LOCAL_HOSTNAMES = [
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]",
+  "::",
+  "[::]",
+];
+
+const isLocalhost = LOCAL_HOSTNAMES.includes(window.location.hostname);
+
 const CONFIG = {
 
   // ── API Base URL ────────────────────────────────────────
   // Change this ONE line when you deploy FastAPI to production.
   // Local dev:   "http://localhost:8000"
-  // Production:  "https://your-api.onrender.com"  (or wherever)
-  API_BASE: window.location.hostname === "localhost"
+  // Production:  "https://your-api.onrender.com"  
+  API_BASE: isLocalhost
     ? "http://localhost:8000"
     : "https://nz-electricity-dashboard.onrender.com",
 
