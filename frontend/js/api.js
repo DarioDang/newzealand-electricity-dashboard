@@ -164,7 +164,7 @@ const API = {
   },
 
   async fetchLive() {
-    const [carbon, reserves, spread] = await Promise.allSettled([
+    const [carbon, reserves, spread, priceRegions] = await Promise.allSettled([
       this.getCarbonLatest(),
       this.getReservesLatest(),
       this.getSpreadLatest(),

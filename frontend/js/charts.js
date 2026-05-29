@@ -6,6 +6,46 @@
      renderTrendChart(rows)     ← Step 7B ✅
      renderSpreadChart(rows)    ← Step 7C ✅
    ============================================================ */
+// ── Load plotly ───────────────────────────
+// ── Load Plotly lazily ───────────────────────────
+let plotlyLoadPromise = null;
+
+function loadPlotly() {
+  if (window.Plotly) {
+    return Promise.resolve(window.Plotly);
+  }
+
+  if (plotlyLoadPromise) {
+    return plotlyLoadPromise;
+  }
+
+  plotlyLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+
+    script.src = "https://cdn.plot.ly/plotly-2.32.0.min.js";
+    script.async = true;
+    script.dataset.plotlyLoader = "true";
+
+    script.onload = () => {
+      if (window.Plotly) {
+        console.log("✅ Plotly loaded");
+        resolve(window.Plotly);
+      } else {
+        reject(new Error("Plotly script loaded but window.Plotly is missing"));
+      }
+    };
+
+    script.onerror = () => {
+      reject(new Error("Failed to load Plotly"));
+    };
+
+    document.body.appendChild(script);
+  });
+
+  return plotlyLoadPromise;
+}
+
+window.loadPlotly = loadPlotly;
 
 // ── Shared Plotly layout defaults ───────────────────────────
 
@@ -103,8 +143,14 @@ function renderNoData(containerId, message = 'No data available') {
 
 function watchResize(containerId) {
   const el = document.getElementById(containerId);
-  if (!el || !window.ResizeObserver) return;
-  const ro = new ResizeObserver(() => Plotly.Plots.resize(el));
+  if (!el || !window.ResizeObserver || !window.Plotly) return;
+
+  const ro = new ResizeObserver(() => {
+    if (window.Plotly) {
+      window.Plotly.Plots.resize(el);
+    }
+  });
+
   ro.observe(el.parentElement || el);
 }
 
@@ -154,7 +200,11 @@ function initChartScrollAnimations() {
         entry.target.style.transform = 'translateY(0)';
         observer.unobserve(entry.target);
         const plotEl = entry.target;
-        setTimeout(() => Plotly.Plots.resize(plotEl), 560);
+        setTimeout(() => {
+          if (window.Plotly) {
+            window.Plotly.Plots.resize(plotEl);
+          }
+        }, 560);
       }
     });
   }, { threshold: 0.10, rootMargin: '0px 0px -32px 0px' });
@@ -559,4 +609,10 @@ function renderSpreadChart(rows) {
   animatedSpreadPlot(containerId, traces, layout, 150);
   watchResize(containerId);
 }
+
+window.renderPrice24Chart = renderPrice24Chart;
+window.renderSummaryChart = renderSummaryChart;
+window.renderTrendChart = renderTrendChart;
+window.renderSpreadChart = renderSpreadChart;
+window.initChartAnimations = initChartAnimations;
 

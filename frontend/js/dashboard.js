@@ -344,149 +344,6 @@ function renderProfile() {
       </div>
     </div>`;
 
-  // Inject styles once
-  if (document.getElementById('profile-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'profile-styles';
-  style.textContent = `
-
-    /* ── Outer card — single column, bio stacked above icons ── */
-    .profile-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-width: 860px;
-      margin: 0 auto;
-      background: linear-gradient(135deg, rgba(17,29,46,0.6), rgba(10,15,26,0.85));
-      border: 1px solid var(--border-base);
-      border-radius: var(--radius-xl);
-      padding: 40px 44px 32px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* top teal accent line */
-    .profile-wrap::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--teal), #10b981, transparent);
-    }
-
-    /* slow shimmer sweep */
-    .profile-wrap::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -70%; width: 40%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
-      animation: profileShine 6s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    /* ── Bio ── */
-    .profile-eyebrow {
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 2.5px; text-transform: uppercase;
-      color: var(--teal); margin-bottom: 10px;
-    }
-
-    .profile-name {
-      font-family: var(--font-mono);
-      font-size: 28px; font-weight: 700;
-      color: var(--text-primary);
-      margin: 0 0 14px; line-height: 1.1;
-    }
-
-    .profile-desc {
-      font-family: var(--font-sans);
-      font-size: 13px; color: var(--text-secondary);
-      line-height: 1.75; margin: 0 0 20px;
-    }
-
-    .profile-tags {
-      display: flex; flex-wrap: wrap; gap: 8px;
-    }
-
-    .profile-tag {
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700;
-      color: var(--teal);
-      background: rgba(20,184,166,0.08);
-      border: 1px solid rgba(20,184,166,0.25);
-      border-radius: var(--radius-full);
-      padding: 4px 12px; letter-spacing: 0.5px;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .profile-tag:hover {
-      background: rgba(20,184,166,0.16);
-      border-color: rgba(20,184,166,0.55);
-    }
-
-    /* ── Icon row — pinned to bottom of card ── */
-    .pf-icon-row {
-      margin-top: 32px;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* thin separator line above icons */
-    .pf-icon-divider {
-      height: 1px;
-      background: linear-gradient(90deg,
-        transparent, var(--border-base), transparent);
-      margin-bottom: 24px;
-    }
-
-    /* Icon links row — centered */
-    .pf-icons {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 32px;
-    }
-
-    /* Each icon link — no bg, no border, just the image */
-    .pf-icon-link {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none !important;
-      opacity: 0.65;
-      animation: fadeInUp 0.5s ease both;
-      transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
-    }
-
-    .pf-icon-link img {
-      width: 36px; height: 36px;
-      object-fit: contain;
-      display: block;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
-      transition: filter 0.25s ease, transform 0.25s ease;
-    }
-
-    /* Hover: icon brightens, scales up, gets brand colour glow */
-    .pf-icon-link:hover {
-      opacity: 1;
-      transform: translateY(-3px);
-    }
-
-    .pf-icon-link:hover img {
-      filter: drop-shadow(0 0 10px var(--ic, #14b8a6))
-              drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-      transform: scale(1.15);
-    }
-
-    /* ── Responsive ── */
-    @media (max-width: 700px) {
-      .profile-wrap { padding: 28px 24px 24px; }
-      .pf-icons { gap: 24px; }
-      .pf-icon-link img { width: 30px; height: 30px; }
-    }
-  `;
-  document.head.appendChild(style);
-
   // scroll entrance
   const wrap = section.querySelector('.profile-wrap');
   if (wrap && window.IntersectionObserver) {
@@ -547,21 +404,34 @@ async function init() {
     }
     updateMapSubtitle(data.priceRegions); 
 
-    setProgress(82, "Rendering price chart...");
+    setProgress(80, "Loading chart engine...");
     await nextPaint();
-    renderPrice24Chart(data.priceNodes);
 
-    setProgress(86, "Rendering market summary...");
-    await nextPaint();
-    renderSummaryChart(data.priceSummary);
+    if (!window.loadPlotly) {
+      throw new Error("loadPlotly() is not available. Check charts.js load order.");
+    }
 
-    setProgress(90, "Rendering carbon trend...");
+    await window.loadPlotly();
+
+    if (!window.Plotly) {
+      throw new Error("Plotly is still not available after loadPlotly().");
+    }
+
+    setProgress(84, "Rendering price chart...");
     await nextPaint();
-    renderTrendChart(data.carbonTrend);
+    window.renderPrice24Chart(data.priceNodes);
+
+    setProgress(88, "Rendering market summary...");
+    await nextPaint();
+    window.renderSummaryChart(data.priceSummary);
+
+    setProgress(91, "Rendering carbon trend...");
+    await nextPaint();
+    window.renderTrendChart(data.carbonTrend);
 
     setProgress(94, "Rendering spread chart...");
     await nextPaint();
-    renderSpreadChart(data.spreadTrend);
+    window.renderSpreadChart(data.spreadTrend);
 
     setProgress(96, "Building dashboard sections...");
     await nextPaint();
@@ -569,7 +439,7 @@ async function init() {
     renderPipeline();
     renderProfile();
 
-    setTimeout(initChartAnimations, 80);
+    setTimeout(window.initChartAnimations, 80);
 
     const dashboard = document.getElementById("dashboard");
     if (dashboard) dashboard.classList.remove("hidden");
@@ -602,6 +472,7 @@ async function init() {
   }
 
   setInterval(async () => {
+    if (document.visibilityState === 'hidden') return;
     try {
       const live = await API.fetchLive();
 
