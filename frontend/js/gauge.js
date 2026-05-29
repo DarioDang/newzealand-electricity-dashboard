@@ -171,7 +171,7 @@ function renderGauge(carbon) {
         <defs>
           <!-- Needle glow filter -->
           <filter id="needleGlow_${uid}" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feGaussianBlur stdDeviation="4" result="blur"/>
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
           <!-- Hub glow -->
@@ -242,29 +242,22 @@ function renderGauge(carbon) {
             font-family="Space Mono,monospace">g CO₂/kWh</text>
         </g>
 
-        <!-- Needle shadow -->
-        <g style="transform-origin:${GAUGE_CX}px ${GAUGE_CY}px; transform-box:view-box; transform:rotate(${needleAngle.toFixed(1)}deg); opacity:0.25;">
-          <line x1="${GAUGE_CX + 3}" y1="${GAUGE_CY + 10}"
-                x2="${GAUGE_CX + 3}" y2="${GAUGE_CY - 128}"
-            stroke="#000" stroke-width="6" stroke-linecap="round"/>
-        </g>
-
         <!-- Needle -->
         <g class="gauge-needle-${uid}">
-          <!-- Needle body glow -->
+          <!-- Glow layer — rộng hơn và sáng hơn -->
           <line x1="${GAUGE_CX}" y1="${GAUGE_CY + 10}"
                 x2="${GAUGE_CX}" y2="${GAUGE_CY - 130}"
-            stroke="${needleColor}" stroke-width="6" stroke-linecap="round"
-            opacity="0.2" filter="url(#needleGlow_${uid})"/>
-          <!-- Needle body -->
+            stroke="#2dd4bf" stroke-width="14" stroke-linecap="round"
+            opacity="0.5" filter="url(#needleGlow_${uid})"/>
+          <!-- Main needle -->
           <line x1="${GAUGE_CX}" y1="${GAUGE_CY + 10}"
                 x2="${GAUGE_CX}" y2="${GAUGE_CY - 130}"
-            stroke="${needleColor}" stroke-width="2.5" stroke-linecap="round"
+            stroke="#2dd4bf" stroke-width="3.5" stroke-linecap="round"
             filter="url(#needleGlow_${uid})"/>
-          <!-- Needle tip accent -->
-          <line x1="${GAUGE_CX}" y1="${GAUGE_CY - 115}"
+          <!-- Bright tip -->
+          <line x1="${GAUGE_CX}" y1="${GAUGE_CY - 112}"
                 x2="${GAUGE_CX}" y2="${GAUGE_CY - 130}"
-            stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
+            stroke="#a7f3d0" stroke-width="2" stroke-linecap="round" opacity="0.95"/>
         </g>
 
         <!-- Hub rings -->
