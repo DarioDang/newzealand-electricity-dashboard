@@ -94,6 +94,106 @@ function updateMapSubtitle(priceRegions) {
   sub.textContent = `Last updated ${toNZT(latest)}`;
 }
 
+// ── Mobile price list (replaces map on mobile) ───────────
+function renderMobilePriceList(priceRegions) {
+  const panel = document.getElementById('panel-map');
+  if (!panel) return;
+  if (window.innerWidth > 768) return;
+
+  const existing = document.getElementById('mobile-price-list');
+  if (existing) existing.remove();
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'mobile-price-list';
+
+  if (!priceRegions || priceRegions.length === 0) {
+    wrapper.innerHTML = `<div style="text-align:center;padding:20px;
+      font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">
+      No price data available
+    </div>`;
+    panel.appendChild(wrapper);
+    return;
+  }
+
+  const sorted = [...priceRegions]
+    .filter(r => r.price_nzd_mwh != null)
+    .sort((a, b) => b.price_nzd_mwh - a.price_nzd_mwh);
+
+  const maxPrice = sorted[0]?.price_nzd_mwh || 1;
+
+  const grid = document.createElement('div');
+  grid.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 7px;
+    padding: 0 14px 14px;
+  `;
+
+  sorted.forEach(region => {
+    const price = parseFloat(region.price_nzd_mwh);
+    const barPct = Math.min((price / maxPrice) * 100, 100).toFixed(1);
+
+    const color = price < 100  ? '#8b5cf6'
+                : price < 200  ? '#14b8a6'
+                : price < 300  ? '#14b8a6'
+                : price < 400  ? '#facc15'
+                : price < 500  ? '#f97316'
+                :                '#e11d48';
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: rgba(13,31,45,0.7);
+      border: 1px solid var(--border-base);
+      border-left: 3px solid ${color};
+      border-radius: 9px;
+      padding: 10px 10px 8px;
+      position: relative;
+      overflow: hidden;
+    `;
+
+    card.innerHTML = `
+      <!-- background bar -->
+      <div style="
+        position:absolute; bottom:0; left:0;
+        width:${barPct}%; height:3px;
+        background:${color}; opacity:0.5;
+        border-radius:0 2px 2px 0;
+      "></div>
+
+      <div style="
+        font-family:var(--font-mono);
+        font-size:9px; font-weight:700;
+        color:var(--text-muted);
+        text-transform:uppercase;
+        letter-spacing:0.5px;
+        margin-bottom:5px;
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+      ">${region.grid_zone_name || region.name || '--'}</div>
+
+      <div style="
+        font-family:var(--font-mono);
+        font-size:15px; font-weight:700;
+        color:${color};
+        line-height:1;
+      ">$${price.toFixed(2)}</div>
+
+      <div style="
+        font-family:var(--font-mono);
+        font-size:8px;
+        color:var(--text-muted);
+        margin-top:3px;
+      ">/MWh</div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  wrapper.appendChild(grid);
+  panel.appendChild(wrapper);
+}
+
 // ── Step 3B: KPI Card 1 — Renewable Generation ──────────────
 
 function updateRenewableCard(carbon) {
@@ -403,6 +503,7 @@ async function init() {
       window.renderNZPriceMap(data.priceRegions || []);
     }
     updateMapSubtitle(data.priceRegions); 
+    renderMobilePriceList(data.priceRegions);
 
     setProgress(80, "Loading chart engine...");
     await nextPaint();
@@ -486,6 +587,7 @@ async function init() {
         window.renderNZPriceMap(live.priceRegions);
       }
       updateMapSubtitle(live.priceRegions);  
+      renderMobilePriceList(live.priceRegions);
 
       console.log("🔄 Live data refreshed");
     } catch (err) {
