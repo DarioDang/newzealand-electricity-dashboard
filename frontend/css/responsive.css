@@ -1,0 +1,481 @@
+/* ============================================================
+   css/responsive.css
+   Mobile-first responsive overrides.
+   ============================================================ */
+
+/* ══════════════════════════════════════════════════════════
+   PHASE 1 — FOUNDATION + HEADER + KPI CARDS
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Base ──────────────────────────────────────────────── */
+  html, body {
+    overflow-x: hidden !important;
+  }
+
+  #dashboard {
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+
+  /* ── Header ────────────────────────────────────────────── */
+  .dash-header {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+  }
+
+  /* Hide clock */
+  .header-left {
+    display: none !important;
+  }
+
+  .header-center {
+    justify-self: center !important;
+    order: 1 !important;
+  }
+
+  .header-logo {
+    font-size: 12px !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+
+  .header-logo-img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .header-sub {
+    font-size: 9px !important;
+    text-align: center !important;
+  }
+
+  .header-right {
+    justify-self: center !important;
+    order: 2 !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .live-badge {
+    font-size: 9px !important;
+    padding: 3px 9px !important;
+  }
+
+  .status-chip {
+    font-size: 9px !important;
+    padding: 3px 9px !important;
+  }
+
+  /* ── Section padding ───────────────────────────────────── */
+  .kpi-section {
+    padding: 10px 10px !important;
+  }
+
+  .section-pad {
+    padding: 0 10px 14px !important;
+  }
+
+  /* ── KPI cards — 2×2 grid ──────────────────────────────── */
+  .kpi-wrap {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .kpi-card {
+    padding: 12px 12px !important;
+    min-height: 115px !important;
+  }
+
+  .kpi-label {
+    font-size: 8px !important;
+    letter-spacing: 0.6px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .kpi-value {
+    font-size: 18px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .kpi-unit {
+    font-size: 10px !important;
+  }
+
+  .kpi-sub {
+    font-size: 9px !important;
+  }
+
+  .kpi-context {
+    font-size: 8px !important;
+  }
+
+  .kpi-trend-badge {
+    font-size: 8px !important;
+    padding: 2px 6px !important;
+    margin-top: 4px !important;
+  }
+
+  .kpi-ring-wrap {
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  .kpi-ring-wrap svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .reserves-detail {
+    gap: 3px !important;
+    margin-top: 5px !important;
+  }
+
+  .reserves-row {
+    font-size: 8px !important;
+  }
+
+  .blink-dot-wrap {
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  .blink-dot-wrap span {
+    font-size: 8px !important;
+  }
+
+  /* ── Footer ────────────────────────────────────────────── */
+  .dash-footer {
+    padding: 10px 14px !important;
+    font-size: 9px !important;
+  }
+}
+
+/* ── Extra small phones < 400px ───────────────────────── */
+@media (max-width: 400px) {
+  .kpi-value {
+    font-size: 16px !important;
+  }
+
+  .kpi-card {
+    padding: 10px 9px !important;
+    min-height: 105px !important;
+  }
+
+  .header-logo {
+    font-size: 11px !important;
+  }
+
+  .kpi-wrap {
+    gap: 6px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PHASE 2 — CHARTS + MAP + GAUGE + PIPELINE
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Row layouts — stack dọc ───────────────────────────── */
+  .row-3col {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* ── Chart panel heights — auto thay vì fixed ──────────── */
+  .chart-panel,
+  #panel-map,
+  #panel-gauge,
+  #panel-price24,
+  #panel-summary,
+  #panel-trend,
+  #panel-spread {
+    height: auto !important;
+    min-height: unset !important;
+  }
+
+  /* ── Panel header — horizontal thay vì vertical ───────── */
+  .panel-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 12px 14px !important;
+    gap: 10px !important;
+  }
+
+  .panel-icon-wrap {
+    width: 30px !important;
+    height: 30px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .panel-icon-img {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .panel-title {
+    font-size: 12px !important;
+  }
+
+  .panel-sub {
+    font-size: 9px !important;
+  }
+
+  /* ── Map panel — ẩn SVG, show price list ───────────────── */
+  #panel-map {
+    min-height: unset !important;
+  }
+
+  .nz-map-shell {
+    display: none !important;
+  }
+
+  /* Price list cards thay thế map */
+  #mobile-price-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 0 14px 14px !important;
+  }
+
+  .mobile-price-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 9px 12px !important;
+    background: rgba(13,31,45,0.6) !important;
+    border: 1px solid var(--border-base) !important;
+    border-radius: 8px !important;
+  }
+
+  .mobile-price-region {
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+  }
+
+  .mobile-price-value {
+    font-family: var(--font-mono) !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #5eead4 !important;
+  }
+
+  .mobile-price-dot {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── Gauge panel ───────────────────────────────────────── */
+  #panel-gauge {
+    padding-bottom: 8px !important;
+  }
+
+  #gauge-container {
+    min-height: 320px !important;
+  }
+
+  .gauge-svg {
+    max-height: 280px !important;
+  }
+
+  .gauge-stats {
+    padding: 8px 6px 10px !important;
+  }
+
+  .gauge-stat-value {
+    font-size: 13px !important;
+  }
+
+  .gauge-stat-label {
+    font-size: 8px !important;
+  }
+
+  .gauge-stat-mid {
+    padding: 0 12px !important;
+  }
+
+  /* ── Plotly charts — full width ────────────────────────── */
+  #chart-price24,
+  #chart-summary,
+  #chart-trend,
+  #chart-spread {
+    min-height: 280px !important;
+    height: 280px !important;
+  }
+
+  /* ── Pipeline — horizontal scroll ─────────────────────── */
+  .pipeline-steps {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    gap: 0 !important;
+    padding-bottom: 12px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .pipeline-steps::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .pipe-step {
+    min-width: 110px !important;
+    flex-shrink: 0 !important;
+    padding: 10px 6px 8px !important;
+  }
+
+  .pipe-step img {
+    width: 44px !important;
+    height: 44px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .pipe-step-name {
+    font-size: 10px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .pipe-step-desc {
+    font-size: 9px !important;
+    line-height: 1.5 !important;
+  }
+
+  .pipe-arrow {
+    flex-shrink: 0 !important;
+    padding: 0 2px !important;
+  }
+
+  .pipe-info-bar {
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+    align-items: flex-start !important;
+  }
+
+  .pipe-info-item {
+    font-size: 9px !important;
+  }
+
+  /* ── Profile section ───────────────────────────────────── */
+  .profile-wrap {
+    padding: 24px 18px 20px !important;
+  }
+
+  .profile-name {
+    font-size: 22px !important;
+  }
+
+  .profile-desc {
+    font-size: 12px !important;
+  }
+
+  .profile-tag {
+    font-size: 9px !important;
+    padding: 3px 9px !important;
+  }
+
+  .pf-icons {
+    gap: 24px !important;
+  }
+
+  .pf-icon-link img {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  /* ── Section divider ───────────────────────────────────── */
+  .divider-label {
+    font-size: 9px !important;
+    letter-spacing: 1.5px !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   PHASE 3 — POLISH
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Gauge — fix khoảng trắng phía trên ───────────────── */
+  #gauge-container {
+    min-height: unset !important;
+  }
+
+  .gauge-wrap {
+    padding: 0 8px 0 !important;
+  }
+
+  .gauge-svg {
+    max-height: 240px !important;
+    height: 240px !important;
+  }
+
+  /* ── Charts — fix legend bị cắt ───────────────────────── */
+  #chart-price24,
+  #chart-summary,
+  #chart-trend,
+  #chart-spread {
+    min-height: 320px !important;
+    height: 320px !important;
+  }
+
+  /* Plotly legend text — nhỏ hơn để không bị cắt */
+  #chart-price24 .legend text,
+  #chart-summary .legend text,
+  #chart-trend .legend text,
+  #chart-spread .legend text {
+    font-size: 9px !important;
+  }
+
+  /* ── Pipeline — ẩn trên mobile ─────────────────────────── */
+  #pipeline-section {
+    display: none !important;
+  }
+
+  /* ── Spread chart — fix legend dài ────────────────────── */
+  #panel-spread {
+    overflow: visible !important;
+  }
+
+  /* ── Price list — fix màu dot đúng band ────────────────── */
+  .mobile-price-row {
+    transition: background 0.2s ease !important;
+  }
+
+  .mobile-price-row:active {
+    background: rgba(20,184,166,0.08) !important;
+  }
+
+  /* ── Section divider spacing ───────────────────────────── */
+  #profile-section .section-divider {
+    margin-bottom: 16px !important;
+  }
+
+  /* ── Profile — bottom padding ──────────────────────────── */
+  #profile-section {
+    padding-bottom: 24px !important;
+  }
+
+  /* ── Smooth scroll trên iOS ────────────────────────────── */
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .chart-panel,
+  .kpi-card,
+  .mobile-price-row {
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+  }
+}
