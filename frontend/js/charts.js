@@ -85,7 +85,7 @@ const CHART_BASE_LAYOUT = {
     font:        { size: 10, color: '#7a9bb5' },
     itemclick:   'toggle',
   },
-  hovermode: 'x unified',
+  hovermode: window.innerWidth <= 768 ? false : 'x unified',
   hoverlabel: {
     bgcolor:     '#0d1f2d',
     bordercolor: '#1e3a4a',
