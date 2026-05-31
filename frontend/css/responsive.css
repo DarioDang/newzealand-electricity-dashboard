@@ -438,7 +438,7 @@
     font-size: 9px !important;
   }
 
-  /* ── Pipeline — ẩn trên mobile ─────────────────────────── */
+  /* ── Pipeline — hide on mobile layout ─────────────────────────── */
   #pipeline-section {
     display: none !important;
   }
