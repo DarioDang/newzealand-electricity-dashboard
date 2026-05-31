@@ -1,10 +1,11 @@
 /* ============================================================
    css/responsive.css
    Mobile-first responsive overrides.
+   Single clean block — no conflicts.
    ============================================================ */
 
 /* ══════════════════════════════════════════════════════════
-   PHASE 1 — FOUNDATION + HEADER + KPI CARDS
+   MOBILE — max-width: 768px
    ══════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
@@ -19,6 +20,10 @@
     width: 100% !important;
   }
 
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
   /* ── Header ────────────────────────────────────────────── */
   .dash-header {
     grid-template-columns: 1fr !important;
@@ -27,7 +32,6 @@
     padding: 10px 14px !important;
   }
 
-  /* Hide clock */
   .header-left {
     display: none !important;
   }
@@ -89,6 +93,8 @@
   .kpi-card {
     padding: 12px 12px !important;
     min-height: 115px !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
   }
 
   .kpi-label {
@@ -148,46 +154,13 @@
     font-size: 8px !important;
   }
 
-  /* ── Footer ────────────────────────────────────────────── */
-  .dash-footer {
-    padding: 10px 14px !important;
-    font-size: 9px !important;
-  }
-}
-
-/* ── Extra small phones < 400px ───────────────────────── */
-@media (max-width: 400px) {
-  .kpi-value {
-    font-size: 16px !important;
-  }
-
-  .kpi-card {
-    padding: 10px 9px !important;
-    min-height: 105px !important;
-  }
-
-  .header-logo {
-    font-size: 11px !important;
-  }
-
-  .kpi-wrap {
-    gap: 6px !important;
-  }
-}
-
-/* ══════════════════════════════════════════════════════════
-   PHASE 2 — CHARTS + MAP + GAUGE + PIPELINE
-   ══════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-
-  /* ── Row layouts — stack dọc ───────────────────────────── */
+  /* ── Row layouts — stack vertical ───────────────────────────── */
   .row-3col {
     grid-template-columns: 1fr !important;
     gap: 10px !important;
   }
 
-  /* ── Chart panel heights — auto thay vì fixed ──────────── */
+  /* ── Chart panels ──────────────────────────────────────── */
   .chart-panel,
   #panel-map,
   #panel-gauge,
@@ -197,9 +170,10 @@
   #panel-spread {
     height: auto !important;
     min-height: unset !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
   }
 
-  /* ── Panel header — horizontal thay vì vertical ───────── */
   .panel-header {
     flex-direction: row !important;
     align-items: center !important;
@@ -227,16 +201,11 @@
     font-size: 9px !important;
   }
 
-  /* ── Map panel — ẩn SVG, show price list ───────────────── */
-  #panel-map {
-    min-height: unset !important;
-  }
-
+  /* ── Map — hide SVG, show price cards ───────────────────── */
   .nz-map-shell {
     display: none !important;
   }
 
-  /* Price list cards thay thế map */
   #mobile-price-list {
     display: flex !important;
     flex-direction: column !important;
@@ -252,6 +221,13 @@
     background: rgba(13,31,45,0.6) !important;
     border: 1px solid var(--border-base) !important;
     border-radius: 8px !important;
+    transition: background 0.2s ease !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+  }
+
+  .mobile-price-row:active {
+    background: rgba(20,184,166,0.08) !important;
   }
 
   .mobile-price-region {
@@ -265,7 +241,6 @@
     font-family: var(--font-mono) !important;
     font-size: 13px !important;
     font-weight: 700 !important;
-    color: #5eead4 !important;
   }
 
   .mobile-price-dot {
@@ -275,17 +250,22 @@
     flex-shrink: 0 !important;
   }
 
-  /* ── Gauge panel ───────────────────────────────────────── */
+  /* ── Gauge ─────────────────────────────────────────────── */
   #panel-gauge {
     padding-bottom: 8px !important;
   }
 
   #gauge-container {
-    min-height: 320px !important;
+    min-height: unset !important;
+  }
+
+  .gauge-wrap {
+    padding: 0 8px 0 !important;
   }
 
   .gauge-svg {
-    max-height: 280px !important;
+    max-height: 240px !important;
+    height: 240px !important;
   }
 
   .gauge-stats {
@@ -304,69 +284,25 @@
     padding: 0 12px !important;
   }
 
-  /* ── Plotly charts — full width ────────────────────────── */
+  /* ── Plotly charts ─────────────────────────────────────── */
   #chart-price24,
   #chart-summary,
   #chart-trend,
   #chart-spread {
-    min-height: 280px !important;
-    height: 280px !important;
+    min-height: 320px !important;
+    height: 320px !important;
   }
 
-  /* ── Pipeline — horizontal scroll ─────────────────────── */
-  .pipeline-steps {
-    display: flex !important;
-    flex-direction: row !important;
-    overflow-x: auto !important;
-    gap: 0 !important;
-    padding-bottom: 12px !important;
-    -webkit-overflow-scrolling: touch !important;
-    scrollbar-width: none !important;
+  #panel-spread {
+    overflow: visible !important;
   }
 
-  .pipeline-steps::-webkit-scrollbar {
+  /* ── Pipeline — hide on  mobile ─────────────────────────── */
+  #pipeline-section {
     display: none !important;
   }
 
-  .pipe-step {
-    min-width: 110px !important;
-    flex-shrink: 0 !important;
-    padding: 10px 6px 8px !important;
-  }
-
-  .pipe-step img {
-    width: 44px !important;
-    height: 44px !important;
-    margin-bottom: 8px !important;
-  }
-
-  .pipe-step-name {
-    font-size: 10px !important;
-    margin-bottom: 4px !important;
-  }
-
-  .pipe-step-desc {
-    font-size: 9px !important;
-    line-height: 1.5 !important;
-  }
-
-  .pipe-arrow {
-    flex-shrink: 0 !important;
-    padding: 0 2px !important;
-  }
-
-  .pipe-info-bar {
-    flex-direction: column !important;
-    gap: 8px !important;
-    padding: 10px 14px !important;
-    align-items: flex-start !important;
-  }
-
-  .pipe-info-item {
-    font-size: 9px !important;
-  }
-
-  /* ── Profile section ───────────────────────────────────── */
+  /* ── Profile ───────────────────────────────────────────── */
   .profile-wrap {
     padding: 24px 18px 20px !important;
   }
@@ -399,83 +335,140 @@
     letter-spacing: 1.5px !important;
     white-space: nowrap !important;
   }
-}
 
-/* ══════════════════════════════════════════════════════════
-   PHASE 3 — POLISH
-   ══════════════════════════════════════════════════════════ */
-
-@media (max-width: 768px) {
-
-  /* ── Gauge — fix khoảng trắng phía trên ───────────────── */
-  #gauge-container {
-    min-height: unset !important;
-  }
-
-  .gauge-wrap {
-    padding: 0 8px 0 !important;
-  }
-
-  .gauge-svg {
-    max-height: 240px !important;
-    height: 240px !important;
-  }
-
-  /* ── Charts — fix legend bị cắt ───────────────────────── */
-  #chart-price24,
-  #chart-summary,
-  #chart-trend,
-  #chart-spread {
-    min-height: 320px !important;
-    height: 320px !important;
-  }
-
-  /* Plotly legend text — nhỏ hơn để không bị cắt */
-  #chart-price24 .legend text,
-  #chart-summary .legend text,
-  #chart-trend .legend text,
-  #chart-spread .legend text {
-    font-size: 9px !important;
-  }
-
-  /* ── Pipeline — hide on mobile layout ─────────────────────────── */
-  #pipeline-section {
-    display: none !important;
-  }
-
-  /* ── Spread chart — fix legend dài ────────────────────── */
-  #panel-spread {
-    overflow: visible !important;
-  }
-
-  /* ── Price list — fix màu dot đúng band ────────────────── */
-  .mobile-price-row {
-    transition: background 0.2s ease !important;
-  }
-
-  .mobile-price-row:active {
-    background: rgba(20,184,166,0.08) !important;
-  }
-
-  /* ── Section divider spacing ───────────────────────────── */
   #profile-section .section-divider {
     margin-bottom: 16px !important;
   }
 
-  /* ── Profile — bottom padding ──────────────────────────── */
   #profile-section {
     padding-bottom: 24px !important;
   }
 
-  /* ── Smooth scroll trên iOS ────────────────────────────── */
-  * {
-    -webkit-tap-highlight-color: transparent !important;
+  /* ── Footer ────────────────────────────────────────────── */
+  .dash-footer {
+    padding: 10px 14px !important;
+    font-size: 9px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   EXTRA SMALL — max-width: 400px
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+  .kpi-value {
+    font-size: 16px !important;
   }
 
-  .chart-panel,
-  .kpi-card,
-  .mobile-price-row {
-    -webkit-transform: translateZ(0) !important;
-    transform: translateZ(0) !important;
+  .kpi-card {
+    padding: 10px 9px !important;
+    min-height: 105px !important;
+  }
+
+  .header-logo {
+    font-size: 11px !important;
+  }
+
+  .kpi-wrap {
+    gap: 6px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   LANDSCAPE — orientation landscape (height < 500px)
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+
+  /* ── Header — more compact ──────────────────────────────── */
+  .dash-header {
+    grid-template-columns: auto 1fr auto !important;
+    grid-template-rows: auto !important;
+    padding: 6px 16px !important;
+    gap: 12px !important;
+  }
+
+  .header-left {
+    display: none !important;
+  }
+
+  .header-center {
+    order: unset !important;
+    justify-self: center !important;
+  }
+
+  .header-right {
+    order: unset !important;
+    justify-self: end !important;
+  }
+
+  .header-logo {
+    font-size: 11px !important;
+  }
+
+  .header-sub {
+    display: none !important;
+  }
+
+  /* ── KPI — return 4 cards ────────────────────────── */
+  .kpi-wrap {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .kpi-card {
+    min-height: 90px !important;
+    padding: 10px 10px !important;
+  }
+
+  .kpi-value {
+    font-size: 16px !important;
+  }
+
+  .kpi-label {
+    font-size: 7px !important;
+  }
+
+  .kpi-section {
+    padding: 8px 10px !important;
+  }
+
+  /* ── Charts — 2 cols instead of 1 ─────────────────────────── */
+  .row-3col {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Map panel full width  */
+  #panel-map {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* ── Gauge — smaller ───────────────────────────────────── */
+  .gauge-svg {
+    max-height: 180px !important;
+    height: 180px !important;
+  }
+
+  .gauge-stats {
+    padding: 6px 4px 8px !important;
+  }
+
+  .gauge-stat-value {
+    font-size: 11px !important;
+  }
+
+  /* ── Charts — smaller to fit the screen ────────────────── */
+  #chart-price24,
+  #chart-summary,
+  #chart-trend,
+  #chart-spread {
+    min-height: 240px !important;
+    height: 240px !important;
+  }
+
+  /* ── Section padding ───────────────────────────────────── */
+  .section-pad {
+    padding: 0 10px 10px !important;
   }
 }
