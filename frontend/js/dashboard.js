@@ -53,6 +53,7 @@ function setHTML(id, value) {
   if (el) el.innerHTML = value;
 }
 
+let _cachedPriceRegions = [];
 // ── Step 3A: Update header ───────────────────────────────────
 
 function updateHeader(carbon) {
@@ -95,6 +96,9 @@ function updateMapSubtitle(priceRegions) {
 }
 
 // ── Mobile price list (replaces map on mobile) ───────────
+// ── Mobile price list — heatmap + NI/SI badge + sort toggle ─
+// Thay thế toàn bộ function renderMobilePriceList cũ
+
 function renderMobilePriceList(priceRegions) {
   const panel = document.getElementById('panel-map');
   if (!panel) return;
@@ -115,82 +119,200 @@ function renderMobilePriceList(priceRegions) {
     return;
   }
 
-  const sorted = [...priceRegions]
-    .filter(r => r.price_nzd_mwh != null)
-    .sort((a, b) => b.price_nzd_mwh - a.price_nzd_mwh);
+  // ── Sort state ─────────────────────────────────────────
+  // Persist sort preference in dataset so re-renders keep state
+  const prevSort = panel.dataset.priceSort || 'price';
 
-  const maxPrice = sorted[0]?.price_nzd_mwh || 1;
+  function buildList(sortBy) {
+    panel.dataset.priceSort = sortBy;
 
-  const grid = document.createElement('div');
-  grid.style.cssText = `
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 7px;
-    padding: 0 14px 14px;
-  `;
+    const filtered = priceRegions.filter(r => r.price_nzd_mwh != null);
 
-  sorted.forEach(region => {
-    const price = parseFloat(region.price_nzd_mwh);
-    const barPct = Math.min((price / maxPrice) * 100, 100).toFixed(1);
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === 'name') {
+        return (a.grid_zone_name || '').localeCompare(b.grid_zone_name || '');
+      }
+      if (sortBy === 'island') {
+        // NI first, then SI; within each group sort by price desc
+        if (a.island !== b.island) return a.island < b.island ? -1 : 1;
+        return b.price_nzd_mwh - a.price_nzd_mwh;
+      }
+      // default: price desc
+      return b.price_nzd_mwh - a.price_nzd_mwh;
+    });
 
-    const color = price < 100  ? '#8b5cf6'
-                : price < 200  ? '#14b8a6'
-                : price < 300  ? '#14b8a6'
-                : price < 400  ? '#facc15'
-                : price < 500  ? '#f97316'
-                :                '#e11d48';
+    const total    = sorted.length;
+    const maxPrice = Math.max(...sorted.map(r => r.price_nzd_mwh));
+    const minPrice = Math.min(...sorted.map(r => r.price_nzd_mwh));
+    const priceRange = maxPrice - minPrice || 1;
 
-    const card = document.createElement('div');
-    card.style.cssText = `
-      background: rgba(13,31,45,0.7);
-      border: 1px solid var(--border-base);
-      border-left: 3px solid ${color};
-      border-radius: 9px;
-      padding: 10px 10px 8px;
-      position: relative;
-      overflow: hidden;
+    // Heatmap — rank-based, xanh → vàng → đỏ
+    // Rank is always based on price desc regardless of sort order
+    const priceRanked = [...filtered]
+      .sort((a, b) => b.price_nzd_mwh - a.price_nzd_mwh)
+      .map(r => r.grid_zone_id);
+
+    function heatColor(gridZoneId) {
+      const rank = priceRanked.indexOf(gridZoneId);
+      const t = rank / (total - 1); // 0=đắt nhất, 1=rẻ nhất
+      if (t < 0.5) {
+        const s = t * 2;
+        return `rgb(${Math.round(239 + (245-239)*s)},${Math.round(68 + (158-68)*s)},${Math.round(68 + (11-68)*s)})`;
+      } else {
+        const s = (t - 0.5) * 2;
+        return `rgb(${Math.round(245 + (16-245)*s)},${Math.round(158 + (185-158)*s)},${Math.round(11 + (129-11)*s)})`;
+      }
+    }
+
+    // ── Sort toggle bar ──────────────────────────────────
+    const toggleBar = document.createElement('div');
+    toggleBar.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 14px 10px;
     `;
 
-    card.innerHTML = `
-      <!-- background bar -->
-      <div style="
-        position:absolute; bottom:0; left:0;
-        width:${barPct}%; height:3px;
-        background:${color}; opacity:0.5;
-        border-radius:0 2px 2px 0;
-      "></div>
+    const sortLabel = document.createElement('span');
+    sortLabel.style.cssText = `
+      font-family: var(--font-mono);
+      font-size: 8px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-right: 2px;
+    `;
+    sortLabel.textContent = 'SORT:';
+    toggleBar.appendChild(sortLabel);
 
-      <div style="
-        font-family:var(--font-mono);
-        font-size:9px; font-weight:700;
-        color:var(--text-muted);
-        text-transform:uppercase;
-        letter-spacing:0.5px;
-        margin-bottom:5px;
-        white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
-      ">${region.grid_zone_name || region.name || '--'}</div>
+    const SORTS = [
+      { key: 'price',  label: 'Price' },
+      { key: 'island', label: 'NI / SI' },
+      { key: 'name',   label: 'Name' },
+    ];
 
-      <div style="
-        font-family:var(--font-mono);
-        font-size:15px; font-weight:700;
-        color:${color};
-        line-height:1;
-      ">$${price.toFixed(2)}</div>
+    SORTS.forEach(({ key, label }) => {
+      const btn = document.createElement('button');
+      const isActive = sortBy === key;
+      btn.style.cssText = `
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        border: 1px solid ${isActive ? 'rgba(20,184,166,0.7)' : 'var(--border-base)'};
+        background: ${isActive ? 'rgba(20,184,166,0.12)' : 'transparent'};
+        color: ${isActive ? '#5eead4' : 'var(--text-muted)'};
+        cursor: pointer;
+        transition: all 0.15s ease;
+        letter-spacing: 0.3px;
+      `;
+      btn.textContent = label;
+      btn.addEventListener('click', () => {
+        // Remove old grid and rebuild
+        const oldGrid = wrapper.querySelector('.price-grid');
+        const oldToggle = wrapper.querySelector('.sort-toggle');
+        if (oldGrid) oldGrid.remove();
+        if (oldToggle) oldToggle.remove();
+        buildList(key);
+      });
+      toggleBar.appendChild(btn);
+    });
 
-      <div style="
-        font-family:var(--font-mono);
-        font-size:8px;
-        color:var(--text-muted);
-        margin-top:3px;
-      ">/MWh</div>
+    toggleBar.classList.add('sort-toggle');
+
+    // ── Cards grid ───────────────────────────────────────
+    const grid = document.createElement('div');
+    grid.classList.add('price-grid');
+    grid.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+      padding: 0 14px 14px;
     `;
 
-    grid.appendChild(card);
-  });
+    sorted.forEach((region) => {
+      const price  = parseFloat(region.price_nzd_mwh);
+      const color  = heatColor(region.grid_zone_id);
+      const barPct = Math.min(((price - minPrice) / priceRange) * 100, 100).toFixed(1);
+      const island = region.island || '';
 
-  wrapper.appendChild(grid);
+      const islandColor = island === 'NI' ? '#3b82f6' : '#10b981';
+
+      const card = document.createElement('div');
+      card.style.cssText = `
+        background: rgba(13,31,45,0.75);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-left: 3px solid ${color};
+        border-radius: 9px;
+        padding: 10px 10px 10px;
+        position: relative;
+        overflow: hidden;
+      `;
+
+      card.innerHTML = `
+        <!-- Heat bar -->
+        <div style="
+          position:absolute; bottom:0; left:0;
+          width:${barPct}%; height:2px;
+          background:${color}; opacity:0.5;
+          border-radius:0 1px 1px 0;
+        "></div>
+
+        <!-- NI/SI badge -->
+        <div style="
+          position:absolute; top:8px; right:8px;
+          font-family:var(--font-mono);
+          font-size:8px; font-weight:700;
+          color:${islandColor};
+          background:${islandColor}18;
+          border:1px solid ${islandColor}40;
+          border-radius:4px;
+          padding:1px 5px;
+          letter-spacing:0.3px;
+        ">${island}</div>
+
+        <!-- Region name -->
+        <div style="
+          font-family:var(--font-mono);
+          font-size:9px; font-weight:700;
+          color:var(--text-muted);
+          text-transform:uppercase;
+          letter-spacing:0.5px;
+          margin-bottom:6px;
+          padding-right:28px;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        ">${region.grid_zone_name || '--'}</div>
+
+        <!-- Price -->
+        <div style="
+          font-family:var(--font-mono);
+          font-size:16px; font-weight:700;
+          color:${color};
+          line-height:1;
+        ">$${price.toFixed(2)}</div>
+
+        <!-- Unit -->
+        <div style="
+          font-family:var(--font-mono);
+          font-size:8px;
+          color:var(--text-muted);
+          margin-top:3px;
+          opacity:0.7;
+        ">/MWh</div>
+      `;
+
+      grid.appendChild(card);
+    });
+
+    wrapper.appendChild(toggleBar);
+    wrapper.appendChild(grid);
+  }
+
+  buildList(prevSort);
   panel.appendChild(wrapper);
 }
 
@@ -503,6 +625,7 @@ async function init() {
       window.renderNZPriceMap(data.priceRegions || []);
     }
     updateMapSubtitle(data.priceRegions); 
+    _cachedPriceRegions = data.priceRegions || [];
     renderMobilePriceList(data.priceRegions);
 
     setProgress(80, "Loading chart engine...");
@@ -586,7 +709,8 @@ async function init() {
       if (live.priceRegions && window.renderNZPriceMap) {
         window.renderNZPriceMap(live.priceRegions);
       }
-      updateMapSubtitle(live.priceRegions);  
+      updateMapSubtitle(live.priceRegions); 
+      _cachedPriceRegions = live.priceRegions || [];  
       renderMobilePriceList(live.priceRegions);
 
       console.log("🔄 Live data refreshed");
@@ -594,6 +718,29 @@ async function init() {
       console.warn("⚠️ Refresh failed:", err);
     }
   }, CONFIG.REFRESH_INTERVAL_MS);
+
+  // ── Handle resize — mobile/desktop switch ────────────────
+  let lastIsMobile = window.innerWidth <= 768;
+
+  window.addEventListener('resize', () => {
+    const isMobile = window.innerWidth <= 768;
+
+    // Chỉ xử lý khi thực sự đổi breakpoint
+    if (isMobile === lastIsMobile) return;
+    lastIsMobile = isMobile;
+
+    if (isMobile) {
+      // Desktop → Mobile: render price list
+      renderMobilePriceList(_cachedPriceRegions);
+    } else {
+      // Mobile → Desktop: xóa price list, show map lại
+      const existing = document.getElementById('mobile-price-list');
+      if (existing) existing.remove();
+
+      const mapShell = document.querySelector('.nz-map-shell');
+      if (mapShell) mapShell.style.display = '';
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
