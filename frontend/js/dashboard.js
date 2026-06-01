@@ -596,15 +596,17 @@ async function init() {
   renderProfile();
 
   try {
-    setProgress(15, "Loading NZ map...");
+    setProgress(10, "Initializing...");
     await nextPaint();
 
-    if (window.initNZPriceMap) {
-      await window.initNZPriceMap();
-    }
+    // ── Chạy song song — map và API cùng lúc ────────────
+    setProgress(20, "Loading data...");
+    const [, apiResult] = await Promise.allSettled([
+      window.initNZPriceMap ? window.initNZPriceMap() : Promise.resolve(),
+      API.fetchAll(),
+    ]);
+    const staleData = apiResult.status === 'fulfilled' ? apiResult.value : null;
 
-    setProgress(25, "Loading cached data...");
-    const staleData = await API.fetchAll();  
     if (staleData?.carbon) {
       carbonForGauge = staleData.carbon;
       updateHeader(staleData.carbon);
@@ -620,7 +622,7 @@ async function init() {
       renderMobilePriceList(staleData.priceRegions);
     }
 
-    setProgress(50, "Loading chart engine...");
+    setProgress(55, "Loading chart engine...");
     await nextPaint();
 
     if (!window.loadPlotly) {
