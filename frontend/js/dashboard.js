@@ -588,7 +588,12 @@ function renderProfile() {
 async function init() {
   let carbonForGauge = null;
 
+  const dashboard = document.getElementById("dashboard");
+  if (dashboard) dashboard.classList.remove("hidden");
+
   startClock();
+  renderPipeline();
+  renderProfile();
 
   try {
     setProgress(15, "Loading NZ map...");
@@ -598,85 +603,51 @@ async function init() {
       await window.initNZPriceMap();
     }
 
-    setProgress(35, "Loading energy data...");
-    await nextPaint();
-
-    const data = await API.fetchAll();
-    console.log("✅ API data loaded:", data);
-
-    carbonForGauge = data.carbon;
-
-    setProgress(55, "Rendering key metrics...");
-    await nextPaint();
-
-    updateHeader(data.carbon);
-    updateRenewableCard(data.carbon);
-    updateCarbonCard(data.carbon);
-    updateSpreadCard(data.spread);
-    updateReservesCard(data.reserves);
-
-    setProgress(65, "Preparing carbon gauge...");
-    await nextPaint();
-
-    setProgress(75, "Rendering price map...");
-    await nextPaint();
-
-    if (window.renderNZPriceMap) {
-      window.renderNZPriceMap(data.priceRegions || []);
+    setProgress(25, "Loading cached data...");
+    const staleData = await API.fetchAll();  
+    if (staleData?.carbon) {
+      carbonForGauge = staleData.carbon;
+      updateHeader(staleData.carbon);
+      updateRenewableCard(staleData.carbon);
+      updateCarbonCard(staleData.carbon);
+      updateSpreadCard(staleData.spread);
+      updateReservesCard(staleData.reserves);
+      if (window.renderNZPriceMap) {
+        window.renderNZPriceMap(staleData.priceRegions || []);
+      }
+      updateMapSubtitle(staleData.priceRegions);
+      _cachedPriceRegions = staleData.priceRegions || [];
+      renderMobilePriceList(staleData.priceRegions);
     }
-    updateMapSubtitle(data.priceRegions); 
-    _cachedPriceRegions = data.priceRegions || [];
-    renderMobilePriceList(data.priceRegions);
 
-    setProgress(80, "Loading chart engine...");
+    setProgress(50, "Loading chart engine...");
     await nextPaint();
 
     if (!window.loadPlotly) {
-      throw new Error("loadPlotly() is not available. Check charts.js load order.");
+      throw new Error("loadPlotly() is not available.");
     }
-
     await window.loadPlotly();
 
     if (!window.Plotly) {
       throw new Error("Plotly is still not available after loadPlotly().");
     }
 
-    setProgress(84, "Rendering price chart...");
+    setProgress(65, "Rendering charts...");
     await nextPaint();
-    window.renderPrice24Chart(data.priceNodes);
+    window.renderPrice24Chart(staleData?.priceNodes);
+    window.renderSummaryChart(staleData?.priceSummary);
+    window.renderTrendChart(staleData?.carbonTrend);
+    window.renderSpreadChart(staleData?.spreadTrend);
 
-    setProgress(88, "Rendering market summary...");
+    setProgress(85, "Finalizing...");
     await nextPaint();
-    window.renderSummaryChart(data.priceSummary);
-
-    setProgress(91, "Rendering carbon trend...");
-    await nextPaint();
-    window.renderTrendChart(data.carbonTrend);
-
-    setProgress(94, "Rendering spread chart...");
-    await nextPaint();
-    window.renderSpreadChart(data.spreadTrend);
-
-    setProgress(96, "Building dashboard sections...");
-    await nextPaint();
-
-    renderPipeline();
-    renderProfile();
 
     setTimeout(window.initChartAnimations, 80);
-
-    const dashboard = document.getElementById("dashboard");
-    if (dashboard) dashboard.classList.remove("hidden");
-
     document.body.classList.add("ready");
 
     window.addEventListener(
       "dashboard-loader-hidden",
-      () => {
-        if (carbonForGauge) {
-          renderGauge(carbonForGauge);
-        }
-      },
+      () => { if (carbonForGauge) renderGauge(carbonForGauge); },
       { once: true }
     );
 
@@ -685,12 +656,7 @@ async function init() {
 
   } catch (err) {
     console.error("❌ Dashboard init error:", err);
-
-    const dashboard = document.getElementById("dashboard");
-    if (dashboard) dashboard.classList.remove("hidden");
-
     document.body.classList.add("ready");
-
     setProgress(100, "Unable to load latest data");
     completeProgress();
   }
@@ -719,21 +685,21 @@ async function init() {
     }
   }, CONFIG.REFRESH_INTERVAL_MS);
 
-  // ── Handle resize — mobile/desktop switch ────────────────
+  // ── Handle resize — 
   let lastIsMobile = window.innerWidth <= 768;
 
   window.addEventListener('resize', () => {
     const isMobile = window.innerWidth <= 768;
 
-    // Chỉ xử lý khi thực sự đổi breakpoint
+    
     if (isMobile === lastIsMobile) return;
     lastIsMobile = isMobile;
 
     if (isMobile) {
-      // Desktop → Mobile: render price list
+      
       renderMobilePriceList(_cachedPriceRegions);
     } else {
-      // Mobile → Desktop: xóa price list, show map lại
+      
       const existing = document.getElementById('mobile-price-list');
       if (existing) existing.remove();
 
