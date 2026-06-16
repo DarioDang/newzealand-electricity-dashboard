@@ -90,3 +90,24 @@ def trigger_ingest(x_cron_secret: Optional[str] = Header(None)):
         "status":  "accepted",
         "message": "Ingest started in background"
     }
+
+@router.get("/trigger/debug")
+def trigger_debug(x_cron_secret: Optional[str] = Header(None)):
+    """Temporary debug endpoint to check file paths on Render."""
+    expected = os.getenv("CRON_SECRET")
+    if x_cron_secret != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    this_file    = os.path.abspath(__file__)
+    routers_dir  = os.path.dirname(this_file)
+    api_dir      = os.path.dirname(routers_dir)
+    project_root = os.path.dirname(api_dir)
+    script_path  = os.path.join(project_root, "pipeline", "flows", "ingest_regional_fast.py")
+
+    return {
+        "this_file":       this_file,
+        "project_root":    project_root,
+        "script_path":     script_path,
+        "script_exists":   os.path.exists(script_path),
+        "project_contents": os.listdir(project_root),
+    }
