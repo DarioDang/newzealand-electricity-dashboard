@@ -41,12 +41,22 @@ def _run_pipeline():
             logger.error(f"📁 Project root contents: {os.listdir(project_root)}")
             return
 
+        # Use venv Python if available, fallback to sys.executable
+        venv_python = os.path.join(project_root, ".venv", "bin", "python")
+        python_bin  = venv_python if os.path.exists(venv_python) else sys.executable
+
+        logger.info(f"🐍 Using Python: {python_bin}")
+
         result = subprocess.run(
-            [sys.executable, script_path],
+            [python_bin, script_path],
             capture_output=True,
             text=True,
             timeout=180,
-            cwd=project_root
+            cwd=project_root,
+            env={
+                **os.environ,
+                "PYTHONPATH": f"{project_root}:{os.path.join(project_root, 'pipeline')}",
+            }
         )
 
         if result.returncode != 0:
