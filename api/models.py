@@ -132,3 +132,70 @@ class HealthCheck(Base):
     database:    str
     latest_data: Optional[str]
     rows_today:  Optional[int]
+
+# ============================================================
+# Generation Forecast Models
+# ============================================================
+class GenerationShortfallCarbon(Base):
+    """
+    Panel 1 - Renewable Shortfall vs Carbon Intensity
+    JOIN: generation_forecast + carbon_intensity on timestamp
+    """
+
+    timestamp_utc:          datetime
+    timestamp_nzt:          str
+    trading_period:         int
+    region:                 str
+    generation_type:        str
+    generation_label:       str
+    forecast_mw:            Optional[float]
+    potential_forecast_mw:  Optional[float]
+    shortfall_mw:           Optional[float]
+    forecast_accuracy_pct:  Optional[float]
+    nz_carbon_gkwh:         Optional[float]
+    carbon_status:          Optional[str] = None   
+    renewable_pct:          Optional[float]
+    cleared_mw:             Optional[float] = None  
+
+class GenerationIslandSpread(Base):
+    """
+    Panel 2 - NI vs SI Generation Imabalance vs HVDC Spread 
+    JOIN: generation_forecast (NI vs SI) + mart_ni_si_spread on timestamp
+    """
+
+    timestamp_utc: datetime
+    timestamp_nzt: str
+    trading_period: int
+    generation_label: str
+    generation_type:  str
+    ni_forecast_mw:   Optional[float]
+    ni_cleared_mw:    Optional[float]
+    ni_shortfall_mw:  Optional[float]
+    si_forecast_mw:   Optional[float]
+    si_cleared_mw:    Optional[float]
+    si_shortfall_mw:  Optional[float]
+    si_ni_imbalance_mw: Optional[float]
+    ni_si_spread:       Optional[float]
+    spread_direction:   Optional[str]
+    spread_status:      Optional[str]
+
+
+class GenerationShortfallPrice(Base):
+    """
+    Panel 3 - Renewable Shortfall vs Regional Price Scarity 
+    JOIN: generation_forecast + regional_price on timestamp 
+    """
+
+    timestamp_utc:    datetime
+    timestamp_nzt:    str
+    trading_period:   int
+    generation_type:  str
+    generation_label: str
+    total_shortfall_mw: Optional[float]
+    total_cleared_mw:   Optional[float]
+    forecast_accuracy_pct:  Optional[float]
+    avg_price_nzd_mwh: Optional[float]
+    max_price_nzd_mwh: Optional[float]
+    min_price_nzd_mwh: Optional[float]
+    ni_avg_price:      Optional[float]
+    si_avg_price:      Optional[float]

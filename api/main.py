@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 
-from api.routers import carbon, health, prices, reserves, spread, dashboard
+from api.routers import carbon, health, prices, reserves, spread, dashboard, generation
 
 # ============================================================
 # App setup
@@ -47,8 +47,8 @@ app.include_router(carbon.router,   prefix="/api", tags=["Carbon"])
 app.include_router(prices.router,   prefix="/api", tags=["Prices"])
 app.include_router(reserves.router, prefix="/api", tags=["Reserves"])
 app.include_router(spread.router,   prefix="/api", tags=["Spread"])
-app.include_router(dashboard.router, prefix="/api", tags=["dashboard"])
-
+app.include_router(dashboard.router, prefix="/api", tags=["Dashboard"])
+app.include_router(generation.router, prefix="/api", tags=["Generation"])
 # ============================================================
 # Root redirect to docs
 # ============================================================

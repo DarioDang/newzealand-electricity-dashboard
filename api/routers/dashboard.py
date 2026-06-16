@@ -9,6 +9,11 @@ from api.routers.prices import (
 )
 from api.routers.reserves import get_reserves_latest
 from api.routers.spread import get_spread_latest, get_spread_trend
+from api.routers.generation import (
+    get_shortfall_carbon,
+    get_island_spread,
+    get_shortfall_price,
+)
 
 router = APIRouter()
 
@@ -40,12 +45,15 @@ def get_dashboard():
         or now - CACHE["daily"]["timestamp"] >= DAILY_TTL
     ):
         CACHE["daily"]["data"] = {
-            "reserves":    get_reserves_latest(),
-            "spread":      get_spread_latest(),
-            "priceNodes":  get_node_prices(hours=48),
-            "carbonTrend": get_carbon_trend(hours=192),
-            "spreadTrend": get_spread_trend(hours=48),
-            "priceSummary":get_daily_summary(days=30),
+            "reserves":          get_reserves_latest(),
+            "spread":            get_spread_latest(),
+            "priceNodes":        get_node_prices(hours=48),
+            "carbonTrend":       get_carbon_trend(hours=192),
+            "spreadTrend":       get_spread_trend(hours=48),
+            "priceSummary":      get_daily_summary(days=30),
+            "genShortfallCarbon":get_shortfall_carbon(hours=48),
+            "genIslandSpread":   get_island_spread(hours=48),
+            "genShortfallPrice": get_shortfall_price(hours=48),
         }
         CACHE["daily"]["timestamp"] = now
 

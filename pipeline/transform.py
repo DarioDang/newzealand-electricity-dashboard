@@ -54,7 +54,7 @@ def transform_carbon_intensity(raw: dict) -> pd.DataFrame:
     items = raw.get("items", [])
     if not items:
         logger.warning("carbon_intensity: no items in raw response")
-        return pd.DataFrame
+        return pd.DataFrame()
     
     df = pd.DataFrame(items).copy()
 
@@ -68,7 +68,7 @@ def transform_carbon_intensity(raw: dict) -> pd.DataFrame:
     # Past numeric columns intensity
     numeric_cols = [
         "nz_carbon_t", "nz_carbon_gkwh", "nz_carbon_change_gkwh",
-        "nz_renwable", "max_24hrs_gkwh", "min_24hrs_gkwh", "current_month_avg_gkwh",
+        "nz_renewable", "max_24hrs_gkwh", "min_24hrs_gkwh", "current_month_avg_gkwh",
         "current_year_avg_gkwh", "pct_current_year_gkwh"
     ]
 
@@ -274,3 +274,6 @@ if __name__ == "__main__":
             print(f"Shape: {df.shape}")
             print(f"Dtypes:\n{df.dtypes}")
             print(f"Sample:\n{df.head(3)}")
+
+
+            

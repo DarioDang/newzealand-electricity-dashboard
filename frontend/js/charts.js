@@ -184,6 +184,9 @@ function initChartScrollAnimations() {
     'chart-summary',
     'chart-trend',
     'chart-spread',
+    'chart-gen-carbon',
+    'chart-gen-spread',
+    'chart-gen-price',
   ];
 
   if (window._chartScrollInitDone) return;
@@ -610,9 +613,481 @@ function renderSpreadChart(rows) {
   watchResize(containerId);
 }
 
-window.renderPrice24Chart = renderPrice24Chart;
-window.renderSummaryChart = renderSummaryChart;
-window.renderTrendChart = renderTrendChart;
-window.renderSpreadChart = renderSpreadChart;
-window.initChartAnimations = initChartAnimations;
+/* ============================================================
+   Generation Insights — Panel 1
+   Renewable Shortfall vs Carbon Intensity
+   Dual axis: shortfall bars (MW) + carbon line (g/kWh)
+   ============================================================ */
+
+function renderGenCarbonChart(rows) {
+  const containerId = 'chart-gen-carbon';
+  if (!rows || rows.length === 0) {
+    renderNoData(containerId, 'No generation data available');
+    return;
+  }
+
+  // ── Aggregate WIN + SOL shortfall per timestamp ──────────
+  const byTimestamp = {};
+  rows.forEach(r => {
+    const ts = r.timestamp_nzt;
+    if (!byTimestamp[ts]) {
+      byTimestamp[ts] = {
+        ts,
+        totalShortfall: 0,
+        totalForecast:  0,
+        totalPotential: 0,
+        carbon:         r.nz_carbon_gkwh,
+        renewable:      r.renewable_pct,
+        types:          [],
+      };
+    }
+    byTimestamp[ts].totalShortfall  += (r.shortfall_mw         || 0);
+    byTimestamp[ts].totalForecast   += (r.forecast_mw          || 0);
+    byTimestamp[ts].totalPotential  += (r.potential_forecast_mw|| 0);
+    byTimestamp[ts].types.push(r.generation_label);
+  });
+
+  const sorted    = Object.values(byTimestamp).sort((a, b) => a.ts.localeCompare(b.ts));
+  const x         = sorted.map(r => r.ts);
+  const shortfall = sorted.map(r => r.totalShortfall);
+  const carbon    = sorted.map(r => r.carbon);
+  const utilPct   = sorted.map(r =>
+    r.totalPotential > 0
+      ? Math.round(r.totalForecast / r.totalPotential * 100)
+      : null
+  );
+
+  // ── Update badge ─────────────────────────────────────────
+  const latest     = sorted[sorted.length - 1];
+  const badgeEl    = document.getElementById('gen-carbon-badge-text');
+  const dotEl      = document.getElementById('gen-carbon-dot');
+  if (badgeEl && latest) {
+    const util = latest.totalPotential > 0
+      ? Math.round(latest.totalForecast / latest.totalPotential * 100)
+      : null;
+    badgeEl.textContent = util !== null
+      ? `Utilisation ${util}% · Carbon ${latest.carbon?.toFixed(1) ?? '--'} g/kWh`
+      : 'Awaiting data';
+    if (dotEl) {
+      dotEl.style.background = util !== null && util < 90
+        ? '#ef4444' : '#10b981';
+      dotEl.style.boxShadow = util !== null && util < 90
+        ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(16,185,129,0.6)';
+    }
+  }
+
+  // ── Shortfall bar colors — red when high, teal when low ──
+  const barColors = shortfall.map(v =>
+    v > 50  ? 'rgba(239,68,68,0.55)'  :
+    v > 20  ? 'rgba(245,158,11,0.50)' :
+              'rgba(20,184,166,0.45)'
+  );
+
+  const traces = [
+    {
+      type: 'bar',
+      name: 'Shortfall MW',
+      x, y: shortfall,
+      yaxis: 'y',
+      marker: { color: barColors },
+      hovertemplate: '<b>Shortfall</b>: %{y:.1f} MW<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'Carbon g/kWh',
+      x, y: carbon,
+      yaxis: 'y2',
+      line: { color: '#f59e0b', width: 2.5, shape: 'spline', smoothing: 0.6 },
+      connectgaps: true,
+      hovertemplate: '<b>Carbon</b>: %{y:.1f} g/kWh<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'Utilisation %',
+      x, y: utilPct,
+      yaxis: 'y3',
+      line: { color: '#14b8a6', width: 1.5, dash: 'dot', shape: 'spline', smoothing: 0.6 },
+      connectgaps: true,
+      opacity: 0.7,
+      hovertemplate: '<b>Utilisation</b>: %{y:.0f}%<extra></extra>',
+    },
+  ];
+
+  const layout = {
+    ...CHART_BASE_LAYOUT,
+    margin: { t: 12, r: 52, b: 64, l: 52 },
+    barmode: 'overlay',
+    xaxis: {
+      ...CHART_BASE_LAYOUT.xaxis,
+      type:        'date',
+      dtick:       12 * 3600 * 1000,
+      tickformat:  '%d %b\n%H:%M',
+      hoverformat: '%d %b %H:%M NZST',
+    },
+    yaxis: {
+      ...CHART_BASE_LAYOUT.yaxis,
+      tickprefix: '', ticksuffix: ' MW',
+      title: { text: 'Shortfall MW', font: { size: 10, color: '#4a6a7a' }, standoff: 6 },
+    },
+    yaxis2: {
+      overlaying: 'y', side: 'right',
+      gridcolor:  'rgba(255,255,255,0.0)', zeroline: false,
+      tickfont:   { size: 10, color: '#4a6a7a' },
+      title: { text: 'Carbon g/kWh', font: { size: 10, color: '#f59e0b' }, standoff: 6 },
+    },
+    yaxis3: {
+      overlaying: 'y', side: 'right', anchor: 'free', position: 1,
+      gridcolor:  'rgba(255,255,255,0.0)', zeroline: false,
+      range:      [50, 105],
+      tickfont:   { size: 9, color: '#14b8a6' }, ticksuffix: '%',
+      showgrid: false,
+    },
+    legend: { ...CHART_BASE_LAYOUT.legend, y: -0.32 },
+  };
+
+  animatedSpreadPlot(containerId, traces, layout, 120);
+  watchResize(containerId);
+}
+
+
+/* ============================================================
+   Generation Insights — Panel 2
+   NI vs SI Generation Imbalance vs HVDC Spread
+   Dual axis: NI/SI wind bars + spread line
+   ============================================================ */
+
+function renderGenSpreadChart(rows) {
+  const containerId = 'chart-gen-spread';
+  if (!rows || rows.length === 0) {
+    renderNoData(containerId, 'No island generation data available');
+    return;
+  }
+
+  // ── Filter WIN only — most meaningful for HVDC story ────
+  const wind = rows
+    .filter(r => r.generation_type === 'WIN')
+    .sort((a, b) => a.timestamp_nzt.localeCompare(b.timestamp_nzt));
+
+  if (wind.length === 0) {
+    renderNoData(containerId, 'No wind generation data available');
+    return;
+  }
+
+  const x           = wind.map(r => r.timestamp_nzt);
+  const niWind      = wind.map(r => r.ni_forecast_mw);
+  const siWind      = wind.map(r => r.si_forecast_mw);
+  const imbalance   = wind.map(r => r.si_ni_imbalance_mw);
+  const spread      = wind.map(r => r.ni_si_spread);
+
+  // ── Update badge ─────────────────────────────────────────
+  const latest   = wind[wind.length - 1];
+  const badgeEl  = document.getElementById('gen-spread-badge-text');
+  const dotEl    = document.getElementById('gen-spread-dot');
+  if (badgeEl && latest) {
+    const dir = latest.spread_direction || '--';
+    const st  = latest.spread_status   || '--';
+    badgeEl.textContent = `${dir} · ${st} · Spread $${latest.ni_si_spread?.toFixed(2) ?? '--'}/MWh`;
+    if (dotEl) {
+      const isConstrained = st === 'Constrained';
+      dotEl.style.background  = isConstrained ? '#ef4444' : '#14b8a6';
+      dotEl.style.boxShadow   = isConstrained
+        ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(20,184,166,0.6)';
+    }
+  }
+
+  const imbalanceColors = imbalance.map(v =>
+    v > 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'
+  );
+
+  const traces = [
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'NI Wind MW', x, y: niWind, yaxis: 'y',
+      line: { color: '#3b82f6', width: 2, shape: 'spline', smoothing: 0.6 },
+      fill: 'tozeroy', fillcolor: 'rgba(59,130,246,0.06)',
+      hovertemplate: '<b>NI Wind</b>: %{y:.0f} MW<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'SI Wind MW', x, y: siWind, yaxis: 'y',
+      line: { color: '#10b981', width: 2, shape: 'spline', smoothing: 0.6 },
+      fill: 'tozeroy', fillcolor: 'rgba(16,185,129,0.06)',
+      hovertemplate: '<b>SI Wind</b>: %{y:.0f} MW<extra></extra>',
+    },
+    {
+      type: 'bar',
+      name: 'SI−NI Imbalance', x, y: imbalance, yaxis: 'y',
+      marker: { color: imbalanceColors },
+      opacity: 0.6,
+      hovertemplate: '<b>SI−NI</b>: %{y:.0f} MW<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'NI/SI Spread', x, y: spread, yaxis: 'y2',
+      line: { color: '#f59e0b', width: 2.5, dash: 'dot', shape: 'spline', smoothing: 0.6 },
+      hovertemplate: '<b>Spread</b>: $%{y:.2f}/MWh<extra></extra>',
+    },
+  ];
+
+  const layout = {
+    ...CHART_BASE_LAYOUT,
+    margin:  { t: 12, r: 52, b: 64, l: 52 },
+    barmode: 'overlay',
+    xaxis: {
+      ...CHART_BASE_LAYOUT.xaxis,
+      type:        'date',
+      dtick:       12 * 3600 * 1000,
+      tickformat:  '%d %b\n%H:%M',
+      hoverformat: '%d %b %H:%M NZST',
+    },
+    yaxis: {
+      ...CHART_BASE_LAYOUT.yaxis,
+      tickprefix: '', ticksuffix: ' MW',
+      title: { text: 'Generation MW', font: { size: 10, color: '#4a6a7a' }, standoff: 6 },
+    },
+    yaxis2: {
+      overlaying: 'y', side: 'right',
+      gridcolor:  'rgba(255,255,255,0.0)', zeroline: false,
+      tickfont:   { size: 10, color: '#f59e0b' }, tickprefix: '$',
+      title: { text: 'Spread $/MWh', font: { size: 10, color: '#f59e0b' }, standoff: 6 },
+    },
+    legend: { ...CHART_BASE_LAYOUT.legend, y: -0.32 },
+    shapes: [{
+      type: 'line', xref: 'paper', yref: 'y',
+      x0: 0, x1: 1, y0: 0, y1: 0,
+      line: { color: 'rgba(255,255,255,0.08)', width: 1, dash: 'dot' },
+    }],
+  };
+
+  animatedSpreadPlot(containerId, traces, layout, 160);
+  watchResize(containerId);
+}
+
+
+/* ============================================================
+   Generation Insights — Panel 3
+   Renewable Shortfall vs Price Scarcity
+   Dual axis: shortfall area + avg price line
+   ============================================================ */
+
+function renderGenPriceChart(rows) {
+  const containerId = 'chart-gen-price';
+  if (!rows || rows.length === 0) {
+    renderNoData(containerId, 'No generation price data available');
+    return;
+  }
+
+  // ── Aggregate WIN + SOL per timestamp ───────────────────
+  const byTimestamp = {};
+  rows.forEach(r => {
+    const ts = r.timestamp_nzt;
+    if (!byTimestamp[ts]) {
+      byTimestamp[ts] = {
+        ts,
+        totalShortfall: 0,
+        totalForecast:  0,
+        totalPotential: 0,
+        avgPrice:       r.avg_price_nzd_mwh,
+        niPrice:        r.ni_avg_price,
+        siPrice:        r.si_avg_price,
+        maxPrice:       r.max_price_nzd_mwh,
+      };
+    }
+    byTimestamp[ts].totalShortfall  += (r.total_shortfall_mw || 0);
+    byTimestamp[ts].totalForecast   += (r.total_cleared_mw   || 0);
+    byTimestamp[ts].totalPotential  += (r.total_cleared_mw   || 0);
+  });
+
+  const sorted    = Object.values(byTimestamp).sort((a, b) => a.ts.localeCompare(b.ts));
+  const x         = sorted.map(r => r.ts);
+  const shortfall = sorted.map(r => r.totalShortfall);
+  const avgPrice  = sorted.map(r => r.avgPrice);
+  const niPrice   = sorted.map(r => r.niPrice);
+  const siPrice   = sorted.map(r => r.siPrice);
+  const maxPrice  = sorted.map(r => r.maxPrice);
+
+  // ── Update badge ─────────────────────────────────────────
+  const latest  = sorted[sorted.length - 1];
+  const badgeEl = document.getElementById('gen-price-badge-text');
+  const dotEl   = document.getElementById('gen-price-dot');
+  if (badgeEl && latest) {
+    const price = latest.avgPrice;
+    badgeEl.textContent = price != null
+      ? `Avg $${price.toFixed(2)}/MWh · Shortfall ${latest.totalShortfall?.toFixed(0) ?? '--'} MW`
+      : 'Price data building up';
+    if (dotEl) {
+      const isHigh = price != null && price > 150;
+      dotEl.style.background = isHigh ? '#ef4444' : '#14b8a6';
+      dotEl.style.boxShadow  = isHigh
+        ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(20,184,166,0.6)';
+    }
+  }
+
+  const traces = [
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'Shortfall MW', x, y: shortfall, yaxis: 'y',
+      fill: 'tozeroy', fillcolor: 'rgba(239,68,68,0.08)',
+      line: { color: 'rgba(239,68,68,0.7)', width: 2, shape: 'spline', smoothing: 0.6 },
+      hovertemplate: '<b>Shortfall</b>: %{y:.1f} MW<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'Avg Price', x, y: avgPrice, yaxis: 'y2',
+      line: { color: '#14b8a6', width: 2.5, shape: 'spline', smoothing: 0.6 },
+      connectgaps: true,
+      hovertemplate: '<b>Avg Price</b>: $%{y:.2f}/MWh<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'NI Avg', x, y: niPrice, yaxis: 'y2',
+      line: { color: '#3b82f6', width: 1.5, dash: 'dot', shape: 'spline', smoothing: 0.6 },
+      connectgaps: true,
+      opacity: 0.8,
+      hovertemplate: '<b>NI Avg</b>: $%{y:.2f}/MWh<extra></extra>',
+    },
+    {
+      type: 'scatter', mode: 'lines',
+      name: 'SI Avg', x, y: siPrice, yaxis: 'y2',
+      line: { color: '#10b981', width: 1.5, dash: 'dot', shape: 'spline', smoothing: 0.6 },
+      connectgaps: true,
+      opacity: 0.8,
+      hovertemplate: '<b>SI Avg</b>: $%{y:.2f}/MWh<extra></extra>',
+    },
+  ];
+
+  const layout = {
+    ...CHART_BASE_LAYOUT,
+    margin: { t: 12, r: 52, b: 64, l: 52 },
+    xaxis: {
+      ...CHART_BASE_LAYOUT.xaxis,
+      type:        'date',
+      dtick:       12 * 3600 * 1000,
+      tickformat:  '%d %b\n%H:%M',
+      hoverformat: '%d %b %H:%M NZST',
+    },
+    yaxis: {
+      ...CHART_BASE_LAYOUT.yaxis,
+      tickprefix: '', ticksuffix: ' MW',
+      title: { text: 'Shortfall MW', font: { size: 10, color: '#4a6a7a' }, standoff: 6 },
+    },
+    yaxis2: {
+      overlaying: 'y', side: 'right',
+      gridcolor:  'rgba(255,255,255,0.0)', zeroline: false,
+      tickfont:   { size: 10, color: '#4a6a7a' }, tickprefix: '$',
+      title: { text: '$/MWh', font: { size: 10, color: '#4a6a7a' }, standoff: 6 },
+    },
+    legend: { ...CHART_BASE_LAYOUT.legend, y: -0.32 },
+  };
+
+  animatedPlot(containerId, traces, layout, 200);
+  watchResize(containerId);
+}
+
+/* ============================================================
+   Generation Insights — Sequential scan line animation
+   Runs left → right across each panel in sequence
+   Panel 1 → Panel 2 → Panel 3, then loops every 12s
+   ============================================================ */
+
+function initGenPanelScanLines() {
+  const panelIds = ['panel-gen-carbon', 'panel-gen-spread', 'panel-gen-price'];
+  const SCAN_DURATION  = 4000;  // ms per panel scan
+  const SCAN_GAP       = 600;   // ms between panels
+  const LOOP_INTERVAL  = 18000; // ms between full cycles
+
+  // Inject scan line into each panel
+  panelIds.forEach(id => {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+
+    // Make sure panel has position:relative
+    panel.style.position = 'relative';
+    panel.style.overflow = 'hidden';
+
+    // Create scan line element
+    const scan = document.createElement('div');
+    scan.className = `gen-scan-line`;
+    scan.dataset.panel = id;
+    scan.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(20, 184, 166, 0.04) 20%,
+        rgba(20, 184, 166, 0.08) 50%,
+        rgba(20, 184, 166, 0.04) 80%,
+        transparent 100%
+      );
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      border-radius: inherit;
+    `;
+    panel.appendChild(scan);
+  });
+
+  // Run one scan across a single panel
+  function scanPanel(panelId) {
+    return new Promise(resolve => {
+      const panel = document.getElementById(panelId);
+      if (!panel) { resolve(); return; }
+
+      const scan = panel.querySelector('.gen-scan-line');
+      if (!scan) { resolve(); return; }
+
+      // Reset position
+      scan.style.transition = 'none';
+      scan.style.left       = '-40%';
+      scan.style.opacity    = '0';
+
+      // Force reflow
+      scan.getBoundingClientRect();
+
+      // Animate across
+      scan.style.transition = `left ${SCAN_DURATION}ms ease-in-out,
+                                opacity 400ms ease`;
+      scan.style.opacity    = '1';
+      scan.style.left       = '140%';
+
+      // Fade out near end
+      setTimeout(() => {
+        scan.style.opacity = '0';
+      }, SCAN_DURATION - 600);
+
+      setTimeout(resolve, SCAN_DURATION);
+    });
+  }
+
+  // Run sequence: panel 1 → gap → panel 2 → gap → panel 3
+  async function runSequence() {
+    for (let i = 0; i < panelIds.length; i++) {
+      await scanPanel(panelIds[i]);
+      if (i < panelIds.length - 1) {
+        await new Promise(r => setTimeout(r, SCAN_GAP));
+      }
+    }
+  }
+
+  // Start after a short delay, then loop
+  setTimeout(() => {
+    runSequence();
+    setInterval(runSequence, LOOP_INTERVAL);
+  }, 2000);
+}
+
+
+window.initGenPanelScanLines = initGenPanelScanLines;
+window.renderPrice24Chart   = renderPrice24Chart;
+window.renderSummaryChart   = renderSummaryChart;
+window.renderTrendChart     = renderTrendChart;
+window.renderSpreadChart    = renderSpreadChart;
+window.renderGenCarbonChart = renderGenCarbonChart;
+window.renderGenSpreadChart = renderGenSpreadChart;
+window.renderGenPriceChart  = renderGenPriceChart;
+window.initChartAnimations  = initChartAnimations;
 
