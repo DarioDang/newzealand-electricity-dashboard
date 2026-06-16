@@ -274,3 +274,6 @@ if __name__ == "__main__":
             print(f"Shape: {df.shape}")
             print(f"Dtypes:\n{df.dtypes}")
             print(f"Sample:\n{df.head(3)}")
+
+
+            
