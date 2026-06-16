@@ -167,7 +167,10 @@
   #panel-price24,
   #panel-summary,
   #panel-trend,
-  #panel-spread {
+  #panel-spread,
+  #panel-gen-carbon,
+  #panel-gen-spread,
+  #panel-gen-price {
     height: auto !important;
     min-height: unset !important;
     -webkit-transform: translateZ(0) !important;
@@ -199,6 +202,17 @@
 
   .panel-sub {
     font-size: 9px !important;
+  }
+
+  /* ── Generation insight badges ─────────────────────────── */
+  .gen-insight-badge {
+    padding: 0 12px 8px !important;
+    font-size: 9px !important;
+  }
+
+  .gen-badge-dot {
+    width: 6px !important;
+    height: 6px !important;
   }
 
   /* ── Map — hide SVG, show price cards ───────────────────── */
@@ -288,7 +302,10 @@
   #chart-price24,
   #chart-summary,
   #chart-trend,
-  #chart-spread {
+  #chart-spread,
+  #chart-gen-carbon,
+  #chart-gen-spread,
+  #chart-gen-price {
     min-height: 320px !important;
     height: 320px !important;
   }
@@ -462,7 +479,10 @@
   #chart-price24,
   #chart-summary,
   #chart-trend,
-  #chart-spread {
+  #chart-spread,
+  #chart-gen-carbon,
+  #chart-gen-spread,
+  #chart-gen-price {
     min-height: 240px !important;
     height: 240px !important;
   }

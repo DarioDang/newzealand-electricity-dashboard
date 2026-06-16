@@ -798,3 +798,32 @@
 #chart-summary,
 #chart-trend,
 #chart-spread  { flex: 1; min-height: 0; width: 100%; }
+
+/* ── Generation Insight Badge ───────────────────────────── */
+.gen-insight-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.gen-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 6px rgba(20, 184, 166, 0.6);
+  animation: genDotPulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes genDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1);   }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
