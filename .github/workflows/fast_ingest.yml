@@ -6,8 +6,8 @@
 name: NZ Regional Price Ingest
 
 on:
-  schedule:
-    - cron: "7,37 * * * *"
+  # schedule:
+  #   - cron: "7,37 * * * *"
   workflow_dispatch:
 
 env:
