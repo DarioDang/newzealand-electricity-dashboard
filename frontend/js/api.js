@@ -16,6 +16,9 @@ const CACHE_TTL = {
   reserves: 5 * 60 * 1000,
   spreadLatest: 5 * 60 * 1000,
   dashboard: 5 * 60 * 1000,
+  genShortfallCarbon: 5 * 60 * 1000,
+  genIslandSpread:    5 * 60 * 1000,
+  genShortfallPrice:  5 * 60 * 1000,
 };
 
 function getCache(key) {
@@ -172,10 +175,34 @@ const API = {
     ]);
 
     return {
-      carbon: carbon.status === "fulfilled" ? carbon.value : null,
-      reserves: reserves.status === "fulfilled" ? reserves.value : null,
-      spread: spread.status === "fulfilled" ? spread.value : null,
+      carbon:       carbon.status       === "fulfilled" ? carbon.value       : null,
+      reserves:     reserves.status     === "fulfilled" ? reserves.value     : null,
+      spread:       spread.status       === "fulfilled" ? spread.value       : null,
       priceRegions: priceRegions.status === "fulfilled" ? priceRegions.value : null,
     };
+  },
+
+  async getGenShortfallCarbon(hours = 48) {
+    return fetchWithCache(
+      `cache_gen_shortfall_carbon_${hours}`,
+      `${CONFIG.API_BASE}/api/generation/shortfall-carbon?hours=${hours}`,
+      CACHE_TTL.genShortfallCarbon
+    );
+  },
+
+  async getGenIslandSpread(hours = 48) {
+    return fetchWithCache(
+      `cache_gen_island_spread_${hours}`,
+      `${CONFIG.API_BASE}/api/generation/island-spread?hours=${hours}`,
+      CACHE_TTL.genIslandSpread
+    );
+  },
+
+  async getGenShortfallPrice(hours = 48) {
+    return fetchWithCache(
+      `cache_gen_shortfall_price_${hours}`,
+      `${CONFIG.API_BASE}/api/generation/shortfall-price?hours=${hours}`,
+      CACHE_TTL.genShortfallPrice
+    );
   },
 };

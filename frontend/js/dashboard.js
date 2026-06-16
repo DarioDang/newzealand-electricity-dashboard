@@ -583,7 +583,25 @@ function renderProfile() {
   }
 }
 
+// ── Generation Insights section divider ─────────────────────
+function _renderGenSectionDivider() {
+  const row3 = document.getElementById('row3');
+  if (!row3 || document.getElementById('gen-section-divider')) return;
+  const divider = document.createElement('div');
+  divider.id = 'gen-section-divider';
+  divider.className = 'section-divider';
+  divider.style.cssText = 'margin-bottom: 20px;';
+  divider.innerHTML = `
+    <div class="divider-line left"></div>
+    <div class="divider-label">Generation Insights</div>
+    <div class="divider-line right"></div>
+  `;
+  row3.parentElement.insertBefore(divider, row3);
+}
+
 // ── Main init ────────────────────────────────────────────────
+
+let _cachedDashboardData = null;
 
 async function init() {
   let carbonForGauge = null;
@@ -606,6 +624,7 @@ async function init() {
       API.fetchAll(),
     ]);
     const staleData = apiResult.status === 'fulfilled' ? apiResult.value : null;
+    _cachedDashboardData = staleData;
 
     if (staleData?.carbon) {
       carbonForGauge = staleData.carbon;
@@ -636,15 +655,20 @@ async function init() {
 
     setProgress(65, "Rendering charts...");
     await nextPaint();
+    _renderGenSectionDivider();
     window.renderPrice24Chart(staleData?.priceNodes);
     window.renderSummaryChart(staleData?.priceSummary);
     window.renderTrendChart(staleData?.carbonTrend);
     window.renderSpreadChart(staleData?.spreadTrend);
+    window.renderGenCarbonChart(staleData?.genShortfallCarbon);
+    window.renderGenSpreadChart(staleData?.genIslandSpread);
+    window.renderGenPriceChart(staleData?.genShortfallPrice);
 
     setProgress(85, "Finalizing...");
     await nextPaint();
 
     setTimeout(window.initChartAnimations, 80);
+    setTimeout(window.initGenPanelScanLines, 1200);
     document.body.classList.add("ready");
 
     window.addEventListener(
@@ -690,24 +714,51 @@ async function init() {
   // ── Handle resize — 
   let lastIsMobile = window.innerWidth <= 768;
 
+  let _resizeTimer = null;
+
   window.addEventListener('resize', () => {
     const isMobile = window.innerWidth <= 768;
 
-    
-    if (isMobile === lastIsMobile) return;
+    if (isMobile === lastIsMobile) {
+      clearTimeout(_resizeTimer);
+      _resizeTimer = setTimeout(() => {
+        if (window.Plotly) {
+          [
+            'chart-price24', 'chart-summary', 'chart-trend', 'chart-spread',
+            'chart-gen-carbon', 'chart-gen-spread', 'chart-gen-price',
+          ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) window.Plotly.Plots.resize(el);
+          });
+        }
+      }, 150);
+      return;
+    }
+
     lastIsMobile = isMobile;
 
     if (isMobile) {
-      
       renderMobilePriceList(_cachedPriceRegions);
     } else {
-      
       const existing = document.getElementById('mobile-price-list');
       if (existing) existing.remove();
-
       const mapShell = document.querySelector('.nz-map-shell');
       if (mapShell) mapShell.style.display = '';
     }
+
+    // Force Plotly to re-render all charts after breakpoint switch
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      if (window.Plotly && _cachedDashboardData) {
+        window.renderPrice24Chart(_cachedDashboardData?.priceNodes);
+        window.renderSummaryChart(_cachedDashboardData?.priceSummary);
+        window.renderTrendChart(_cachedDashboardData?.carbonTrend);
+        window.renderSpreadChart(_cachedDashboardData?.spreadTrend);
+        window.renderGenCarbonChart(_cachedDashboardData?.genShortfallCarbon);
+        window.renderGenSpreadChart(_cachedDashboardData?.genIslandSpread);
+        window.renderGenPriceChart(_cachedDashboardData?.genShortfallPrice);
+      }
+    }, 200);
   });
 }
 
