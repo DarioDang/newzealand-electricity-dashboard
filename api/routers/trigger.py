@@ -75,24 +75,3 @@ def trigger_ingest(x_cron_secret: Optional[str] = Header(None)):
         "status":  "accepted",
         "message": "Ingest started in background"
     }
-
-
-@router.get("/trigger/debug")
-def trigger_debug(x_cron_secret: Optional[str] = Header(None)):
-    """Debug endpoint to check paths on Render."""
-    expected = os.getenv("CRON_SECRET")
-    if x_cron_secret != expected:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    project_root = _setup_pipeline_path()
-    pipeline_flows = os.path.join(project_root, "pipeline", "flows")
-
-    return {
-        "project_root":      project_root,
-        "pipeline_flows":    pipeline_flows,
-        "flows_exists":      os.path.exists(pipeline_flows),
-        "flows_contents":    os.listdir(pipeline_flows) if os.path.exists(pipeline_flows) else [],
-        "sys_path":          sys.path[:5],
-        "neon_host_set":     bool(os.getenv("NEON_DB_HOST")),
-        "cron_secret_set":   bool(os.getenv("CRON_SECRET")),
-    }
