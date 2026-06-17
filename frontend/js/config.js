@@ -29,7 +29,7 @@ const CONFIG = {
   // How often the dashboard polls the API for new data (ms).
   // 60000 = 60 seconds, matching your pipeline's 30min cron
   // (no point refreshing faster than the data changes)
-  REFRESH_INTERVAL_MS: 30 * 60 * 1000,  // 30 minutes — matches GitHub Actions cron
+  REFRESH_INTERVAL_MS: 5 * 60 * 1000,  // 5 minutes — matches GitHub Actions cron
 
   // ── Chart heights ────────────────────────────────────────
   // Keep in sync with --chart-h-main and --chart-h-sub in tokens.css
