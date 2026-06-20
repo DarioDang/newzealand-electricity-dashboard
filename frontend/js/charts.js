@@ -780,19 +780,29 @@ function renderGenSpreadChart(rows) {
   const spread      = wind.map(r => r.ni_si_spread);
 
   // ── Update badge ─────────────────────────────────────────
+  const latestWithSpread = [...wind].reverse().find(r => r.ni_si_spread != null);
   const latest   = wind[wind.length - 1];
   const badgeEl  = document.getElementById('gen-spread-badge-text');
   const dotEl    = document.getElementById('gen-spread-dot');
-  if (badgeEl && latest) {
-    const dir = latest.spread_direction || '--';
-    const st  = latest.spread_status   || '--';
-    badgeEl.textContent = `${dir} · ${st} · Spread $${latest.ni_si_spread?.toFixed(2) ?? '--'}/MWh`;
+
+  if (badgeEl && latestWithSpread) {
+    const dir = latestWithSpread.spread_direction || '--';
+    const st  = latestWithSpread.spread_status   || '--';
+    const asOf = latestWithSpread.timestamp_nzt
+      ? new Date(latestWithSpread.timestamp_nzt).toLocaleString('en-NZ', {
+          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+        })
+      : '';
+    badgeEl.textContent = `${dir} · ${st} · Spread $${latestWithSpread.ni_si_spread.toFixed(2)}/MWh (as of ${asOf})`;
+
     if (dotEl) {
       const isConstrained = st === 'Constrained';
-      dotEl.style.background  = isConstrained ? '#ef4444' : '#14b8a6';
-      dotEl.style.boxShadow   = isConstrained
+      dotEl.style.background = isConstrained ? '#ef4444' : '#14b8a6';
+      dotEl.style.boxShadow  = isConstrained
         ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(20,184,166,0.6)';
     }
+  } else if (badgeEl) {
+    badgeEl.textContent = 'Spread data pending dbt refresh';
   }
 
   const imbalanceColors = imbalance.map(v =>
