@@ -23,7 +23,7 @@ const CONFIG = {
   // Production:  "https://your-api.onrender.com"  
   API_BASE: isLocalhost
     ? "http://localhost:8000"
-    : "https://nz-electricity-dashboard.onrender.com",
+    : "https://newzealand-electricity-dashboard-production.up.railway.app",
 
   // ── Refresh interval ────────────────────────────────────
   // How often the dashboard polls the API for new data (ms).

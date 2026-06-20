@@ -1,0 +1,11 @@
+# ============================================================
+# Lean requirements for Railway deployment — API service only
+# Excludes prefect, dbt, streamlit (not needed at runtime)
+# ============================================================
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+pandas==2.2.3
+numpy==1.26.4
+requests==2.32.3
