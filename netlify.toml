@@ -1,6 +1,7 @@
 [build]
-  publish = "frontend"
-  command = ""
+  base = "frontend"
+  command = "npm install && npm run build:js"
+  publish = "."
 
 [[headers]]
   for = "/*"

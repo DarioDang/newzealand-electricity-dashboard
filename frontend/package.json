@@ -1,0 +1,20 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:js": "cat js/templates.js js/config.js js/api.js js/clock.js js/gauge.js js/charts.js js/map.js js/dashboard.js js/ecg.js > js/_combined.js && npx esbuild js/_combined.js --minify --outfile=js/bundle.min.js && rm js/_combined.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "esbuild": "^0.28.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}
