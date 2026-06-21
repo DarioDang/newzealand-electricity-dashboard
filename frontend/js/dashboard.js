@@ -3,6 +3,8 @@
    Main app entry point — fetches data and wires every component.
    ============================================================ */
 
+
+
 // ── Loading progress helpers ────────────────────────────────
 function setProgress(percent, message) {
   if (window.setLoaderTarget) {
@@ -97,7 +99,6 @@ function updateMapSubtitle(priceRegions) {
 
 // ── Mobile price list (replaces map on mobile) ───────────
 // ── Mobile price list — heatmap + NI/SI badge + sort toggle ─
-// Thay thế toàn bộ function renderMobilePriceList cũ
 
 function renderMobilePriceList(priceRegions) {
   const panel = document.getElementById('panel-map');
@@ -433,156 +434,6 @@ function updateReservesCard(reserves) {
   if (siBar) setTimeout(() => { siBar.style.width = `${Math.min(siFir / 20 * 100, 100)}%`; }, 400);
 }
 
-// ── Step 8: Pipeline section ─────────────────────────────────
-
-function renderPipeline() {
-  const section = document.getElementById('pipeline-section');
-  if (!section) return;
-
-  const STEPS = [
-    { icon: 'static/em6-icon.png',            name: 'Energy Market Service', desc: 'Free API<br>5 endpoints<br>30 min intervals' },
-    { icon: 'static/github-action-icon.png',  name: 'GitHub Actions',        desc: 'Cron scheduler<br>ETL trigger<br>Free tier' },
-    { icon: 'static/fast-api-icon.png',       name: 'FastAPI',               desc: 'Python backend<br>REST endpoints<br>Pydantic models' },
-    { icon: 'static/neon-postgres-icon.png',  name: 'Neon Postgres',         desc: 'Cloud database<br>ap-southeast-2<br>Always free' },
-    { icon: 'static/dbt-icon.png',            name: 'dbt',                   desc: 'Staging views<br>Mart tables<br>82 data tests' },
-  ];
-
-  const INFO = [
-    'Every 30 min · em6 API → Neon raw tables',
-    'Nightly · dbt run → mart refresh → 7-day purge',
-    '82 data quality tests on every run',
-    'Neon Postgres Database · cloud free tier',
-  ];
-
-  const ARROW = `
-    <div class="pipe-arrow">
-      <div class="pipe-arrow-dash"></div>
-      <div class="pipe-arrow-gap"></div>
-      <div class="pipe-arrow-dash"></div>
-      <div class="pipe-arrow-gap"></div>
-      <div class="pipe-arrow-head"></div>
-    </div>`;
-
-  const stepsHTML = STEPS.map((step, i) =>
-    `<div class="pipe-step" style="animation-delay:${(i+1)*0.1}s;">
-      <img src="${step.icon}" alt="${step.name}" />
-      <div class="pipe-step-name">${step.name}</div>
-      <div class="pipe-step-desc">${step.desc}</div>
-    </div>`
-  ).join(ARROW);
-
-  const infoHTML = INFO.map(text =>
-    `<div class="pipe-info-item"><div class="pipe-info-dot"></div>${text}</div>`
-  ).join('');
-
-  section.innerHTML = `
-    <div class="section-divider">
-      <div class="divider-line left"></div>
-      <div class="divider-label">Data Pipeline Architecture</div>
-      <div class="divider-line right"></div>
-    </div>
-    <div class="pipeline-steps">${stepsHTML}</div>
-    <div class="pipe-info-bar">${infoHTML}</div>`;
-
-  const steps = section.querySelectorAll('.pipe-step');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity   = '1';
-        entry.target.style.transform = 'translateY(0)';
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-  steps.forEach((el, i) => {
-    el.style.opacity    = '0';
-    el.style.transform  = 'translateY(20px)';
-    el.style.transition = `opacity 0.5s ease ${i*0.08}s, transform 0.5s ease ${i*0.08}s`;
-    observer.observe(el);
-  });
-}
-
-// ── Step 9: Profile section ──────────────────────────────────
-// Redesigned layout — no icon circles (avoids clipping).
-// Three horizontal cards, each with a free-standing icon,
-// text block, and animated accent line on hover.
-
-function renderProfile() {
-  const section = document.getElementById('profile-section');
-  if (!section) return;
-
-  const STACK = [
-    'Python', 'FastAPI', 'PostgreSQL', 'dbt', 'GitHub Actions',
-    'Plotly', 'HTML · CSS · JS', 'Neon', 'em6 API',
-  ];
-
-  // Icon-only links — no labels, no cards, just the icon as a clickable link
-  const LINKS = [
-    { icon: 'static/linkedin-icon.png',   label: 'LinkedIn',  url: 'https://www.linkedin.com/in/dario-dang-89049020a/', color: '#0a66c2' },
-    { icon: 'static/github-icon.png',     label: 'GitHub',    url: 'https://github.com/DarioDang',                      color: '#e2e8f0' },
-    { icon: 'static/portfolio-icon.png',  label: 'Portfolio', url: 'https://dariodang.github.io/',                      color: '#14b8a6' },
-  ];
-
-  const stackHTML = STACK.map(tag =>
-    `<span class="profile-tag">${tag}</span>`
-  ).join('');
-
-  // Clean icon-only links — no background, no text
-  const iconsHTML = LINKS.map((link, i) => `
-    <a class="pf-icon-link"
-       href="${link.url}"
-       target="_blank"
-       rel="noopener noreferrer"
-       title="${link.label}"
-       style="--ic:${link.color}; animation-delay:${0.6 + i * 0.1}s;">
-      <img src="${link.icon}" alt="${link.label}" />
-    </a>`
-  ).join('');
-
-  section.innerHTML = `
-    <div class="section-divider">
-      <div class="divider-line left"></div>
-      <div class="divider-label">About the Builder</div>
-      <div class="divider-line right"></div>
-    </div>
-
-    <div class="profile-wrap">
-      <!-- Bio — top area, same as before -->
-      <div class="profile-bio">
-        <div class="profile-eyebrow">Data Engineering · Portfolio Project</div>
-        <h2 class="profile-name">Dario Dang</h2>
-        <p class="profile-desc">
-          Built this dashboard to demonstrate an end-to-end data engineering
-          pipeline — from live API ingestion through cloud warehousing and dbt
-          modelling, to a real-time frontend served without any paid compute.
-        </p>
-        <div class="profile-tags">${stackHTML}</div>
-      </div>
-
-      <!-- Icon row — pinned to bottom center of the card -->
-      <div class="pf-icon-row">
-        <div class="pf-icon-divider"></div>
-        <div class="pf-icons">${iconsHTML}</div>
-      </div>
-    </div>`;
-
-  // scroll entrance
-  const wrap = section.querySelector('.profile-wrap');
-  if (wrap && window.IntersectionObserver) {
-    wrap.style.opacity   = '0';
-    wrap.style.transform = 'translateY(24px)';
-    const obs = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        wrap.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        wrap.style.opacity    = '1';
-        wrap.style.transform  = 'translateY(0)';
-        obs.unobserve(wrap);
-      }
-    }, { threshold: 0.1 });
-    obs.observe(wrap);
-  }
-}
-
 // ── Generation Insights section divider ─────────────────────
 function _renderGenSectionDivider() {
   const row3 = document.getElementById('row3');
@@ -609,12 +460,16 @@ async function init() {
   const dashboard = document.getElementById("dashboard");
   if (dashboard) dashboard.classList.remove("hidden");
 
-  startClock();
-  renderPipeline();
-  renderProfile();
-
   try {
     setProgress(10, "Initializing...");
+    renderHeader();
+    renderKPISection();
+    renderRow1();
+    renderRow2();
+    renderRow3();
+    startClock();
+    renderPipeline();
+    renderProfile();
     await nextPaint();
 
     // ── Chạy song song — map và API cùng lúc ────────────
