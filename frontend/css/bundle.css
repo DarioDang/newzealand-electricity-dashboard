@@ -208,10 +208,6 @@ ul, ol {
   width: 100%;
 }
  
-#dashboard.hidden {
-  display: none;
-}
- 
 /* Override — show dots in a row */
 #loading-screen {
   flex-direction: column;
