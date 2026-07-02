@@ -217,9 +217,9 @@
           if (
             window.__loader.started &&
             !window.__loader.done &&
-            window.__loader.target < 88
+            window.__loader.target < 85
           ) {
-            window.__loader.target += 0.012;
+            window.__loader.target += 0.006;
           }
 
           const shown = Math.min(100, Math.floor(window.__loader.current));
@@ -227,7 +227,7 @@
           if (percentEl) percentEl.textContent = `${shown}%`;
           if (fillEl) fillEl.style.width = `${shown}%`;
 
-          if (shown >= 100 && window.__loader.done) {
+          if (shown >= 100 && window.__loader.done && !window.__loader.hidden) {
             window.__loader.hidden = true;
 
             setTimeout(() => {
