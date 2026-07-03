@@ -1,7 +1,12 @@
 [build]
-  base = "frontend"
+  base    = "frontend"
   command = "npm install && npm run build:js"
   publish = "."
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
 [[headers]]
   for = "/*"
