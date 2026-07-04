@@ -1,7 +1,0 @@
-/index.html
-  Cache-Control: no-cache, no-store, must-revalidate
-  Netlify-CDN-Cache-Control: no-store
-
-/*
-  X-Frame-Options: DENY
-  X-Content-Type-Options: nosniff
