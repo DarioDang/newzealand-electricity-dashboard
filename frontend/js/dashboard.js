@@ -457,6 +457,9 @@ let _cachedDashboardData = null;
 async function init() {
   let carbonForGauge = null;
 
+  const dashboard = document.getElementById("dashboard");
+  if (dashboard) dashboard.classList.remove("hidden");
+
   try {
     setProgress(10, "Initializing...");
     renderHeader();
@@ -467,17 +470,8 @@ async function init() {
     startClock();
     renderPipeline();
     renderProfile();
-
-    // ── Wait for bundle.css to apply before revealing dashboard ──
-    await nextPaint();
-    await nextPaint(); // double RAF ensures styles are computed
-
-    const dashboard = document.getElementById("dashboard");
-    if (dashboard) dashboard.classList.remove("hidden");
-
     await nextPaint();
 
-    // ── Chạy song song — map và API cùng lúc ────────────
     setProgress(20, "Loading data...");
     const [, apiResult] = await Promise.allSettled([
       window.initNZPriceMap ? window.initNZPriceMap() : Promise.resolve(),
