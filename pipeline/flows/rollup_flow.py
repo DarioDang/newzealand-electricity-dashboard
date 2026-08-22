@@ -94,8 +94,8 @@ def purge_task():
 
     tables = [
         "carbon_intensity",
-        "node_prices",
-        "regional_prices",
+        #"node_prices",
+        #"regional_prices",
         "generation_forecast",
         "reserve_prices",
     ]
