@@ -4,6 +4,7 @@
 # Returns raw JSON as Python dicts — no transformation here.
 # ============================================================
 import logging
+import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -75,21 +76,56 @@ def fetch_node_prices(session: requests.Session) -> dict:
     logger.info(f"node_prices: {data.get('count', len(data.get('items', [])))} records returned")
     return data
 
-def fetch_regional_prices(session: requests.Session) -> dict:
+def fetch_regional_prices(session: requests.Session, max_attempts: int = 4, wait_seconds: int = 20) -> dict:
     """
     Fetch current spot price for all 14 NZ grid regions.
-    Endpoint: /region/price/
-    Returns: 14 rows (one per grid zone, current trading period)
+    Endpoint: /region/price/ — returns only the *current* trading period,
+    no rolling window (confirmed via em6 API docs).
+
+    Known quirk: if em6 hasn't published the new period yet, this endpoint
+    returns the PREVIOUS period's data (not empty, not an error) — so a naive
+    fetch silently gets stale data that ON CONFLICT DO NOTHING then swallows
+    as a "duplicate," hiding the gap entirely. We must check the returned
+    timestamp against the expected current trading period and retry if stale.
     """
+    import time
+    from datetime import datetime, timezone
+
     url = f"{BASE_URL}/region/price/"
-    logger.info(f"Fetching regional prices from {url}")
 
-    response = session.get(url, timeout=TIMEOUT)
-    response.raise_for_status()
+    # Trading periods are 30-min blocks starting at :00 and :30 UTC.
+    # The period we expect data for is the one that just closed.
+    now = datetime.now(timezone.utc)
+    expected_minute = 0 if now.minute < 30 else 30
+    expected_period_start = now.replace(minute=expected_minute, second=0, microsecond=0)
 
-    data = response.json()
-    logger.info(f"regional_prices: {data.get('count', len(data.get('items', [])))} records returned")
-    return data
+    last_data = None
+
+    for attempt in range(1, max_attempts + 1):
+        response = session.get(url, timeout=TIMEOUT)
+        response.raise_for_status()
+        data = response.json()
+        items = data.get("items", [])
+        last_data = data
+
+        if items:
+            latest_ts = pd.to_datetime(items[0]["timestamp"])
+            if latest_ts >= pd.Timestamp(expected_period_start):
+                logger.info(f"regional_prices: fresh data for {latest_ts} (attempt {attempt})")
+                return data
+            else:
+                logger.warning(
+                    f"regional_prices: stale data on attempt {attempt}/{max_attempts} "
+                    f"(got {latest_ts}, expected >= {expected_period_start})"
+                )
+        else:
+            logger.warning(f"regional_prices: empty response on attempt {attempt}/{max_attempts}")
+
+        if attempt < max_attempts:
+            time.sleep(wait_seconds)
+
+    logger.error("regional_prices: giving up — last response still stale/empty after all retries")
+    return last_data or {"items": []}
 
 def fetch_generation_forecast(session: requests.Session) -> dict:
     """
