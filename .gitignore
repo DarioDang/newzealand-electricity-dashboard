@@ -15,3 +15,4 @@ api/routers/__pycache__
 frontend/node_modules/
 frontend/js/bundle.min.js
 frontend/js/_combined.js
+tests/timing_test.py    
