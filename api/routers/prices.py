@@ -44,21 +44,27 @@ def get_regional_prices():
     """
     Current spot price for all 14 NZ grid regions.
     Powers: NZ Regional price map.
+
+    Reads directly from public.regional_prices (raw table, fed every 30 min
+    by the reliable cron-job.org → Railway ingest path) instead of the
+    staging.stg_em6__regional_prices dbt view, which only refreshes once
+    nightly via rollup.yml — that lag was causing the dashboard to show
+    stale "last updated" times even when raw data was current.
     """
 
     results = query_many("""
         SELECT
-            rp.timestamp_utc,
+            rp.timestamp AS timestamp_utc,
             rp.trading_period,
             rp.grid_zone_id,
             gz.grid_zone_name,
             gz.island,
-            rp.price_nzd_mwh
-        FROM staging.stg_em6__regional_prices rp
+            rp.price AS price_nzd_mwh
+        FROM public.regional_prices rp
         JOIN public.grid_zones gz USING (grid_zone_id)
-        WHERE rp.timestamp_utc = (
-            SELECT MAX(timestamp_utc)
-            FROM staging.stg_em6__regional_prices
+        WHERE rp.timestamp = (
+            SELECT MAX(timestamp)
+            FROM public.regional_prices
         )
         ORDER BY gz.island DESC, gz.grid_zone_name
     """)
