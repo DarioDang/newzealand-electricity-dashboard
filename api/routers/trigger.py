@@ -9,7 +9,7 @@ import sys
 import logging
 import threading
 from fastapi import APIRouter, HTTPException, Header
-from ingest_regional_fast import run_fast_ingest
+from ingest_regional_fast import run_fast_ingest # type: ignore
 from typing import Optional
 
 router = APIRouter()
