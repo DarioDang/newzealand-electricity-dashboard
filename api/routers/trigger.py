@@ -33,22 +33,19 @@ def _setup_pipeline_path():
 
 
 def _run_pipeline():
-    """Runs fast ingest directly in background thread."""
+    print("🚀 Background pipeline starting...", flush=True)
     try:
         _setup_pipeline_path()
-
-        # Import here after path is set up
-        from ingest_regional_fast import run_fast_ingest  # type: ignore
+        from ingest_regional_fast import run_fast_ingest
+        print("📦 Imported run_fast_ingest successfully", flush=True)
         run_fast_ingest()
-        logger.info("✅ Background ingest completed successfully")
-
+        print("✅ Background ingest completed successfully", flush=True)
     except ImportError as e:
-        logger.error(f"❌ Import error: {e}")
-        logger.error(f"❌ sys.path: {sys.path}")
+        print(f"❌ Import error: {e}", flush=True)
     except Exception as e:
-        logger.error(f"❌ Background ingest failed: {type(e).__name__}: {e}")
+        print(f"❌ Background ingest failed: {type(e).__name__}: {e}", flush=True)
         import traceback
-        logger.error(traceback.format_exc())
+        print(traceback.format_exc(), flush=True)
 
 
 @router.get("/trigger/ingest")
