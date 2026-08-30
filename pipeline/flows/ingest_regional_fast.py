@@ -10,6 +10,7 @@
 import logging
 import sys
 import os
+import pandas as pd 
 from datetime import datetime, timezone, timedelta
 
 # Add pipeline root to path so imports work
@@ -78,13 +79,23 @@ def run_fast_ingest():
         # ── 1. Regional prices → dashboard map ───────────────
         regional_df = transformed.get("regional_prices")
         if regional_df is not None and not regional_df.empty:
-            load_regional_prices(conn, regional_df)
+            # Check freshness before loading — skip stale data rather than
+            # inserting a previous period's price under a delayed cycle.
+            latest_ts_in_df = pd.to_datetime(regional_df['timestamp']).max()
+            now = datetime.now(timezone.utc)
+            expected_minute = 0 if now.minute < 30 else 30
+            expected_period_start = now.replace(minute=expected_minute, second=0, microsecond=0)
+
+            if latest_ts_in_df >= pd.Timestamp(expected_period_start):
+                load_regional_prices(conn, regional_df)
+                load_regional_prices_history(conn, regional_df)
+            else:
+                logger.warning(
+                    f"Skipping load — regional_prices still stale after all retries "
+                    f"(got {latest_ts_in_df}, expected >= {expected_period_start})"
+                )
         else:
             logger.warning("No regional price data returned")
-
-        # ── 2. Regional prices history → time series later ───
-        if regional_df is not None and not regional_df.empty:
-            load_regional_prices_history(conn, regional_df)
 
         # ── 3. Carbon intensity → live KPI card ──────────────
         carbon_df = transformed.get("carbon_intensity")
