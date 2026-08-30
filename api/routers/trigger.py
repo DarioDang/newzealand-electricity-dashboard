@@ -9,7 +9,6 @@ import sys
 import logging
 import threading
 from fastapi import APIRouter, HTTPException, Header
-from ingest_regional_fast import run_fast_ingest # type: ignore
 from typing import Optional
 
 router = APIRouter()
@@ -34,12 +33,17 @@ def _setup_pipeline_path():
 
 
 def _run_pipeline():
+    """Runs fast ingest directly in background thread."""
     print("🚀 Background pipeline starting...", flush=True)
     try:
         _setup_pipeline_path()
+
+        # Import here, AFTER path is set up — must stay inside this function
+        from ingest_regional_fast import run_fast_ingest  # type: ignore
         print("📦 Imported run_fast_ingest successfully", flush=True)
         run_fast_ingest()
         print("✅ Background ingest completed successfully", flush=True)
+
     except ImportError as e:
         print(f"❌ Import error: {e}", flush=True)
     except Exception as e:
