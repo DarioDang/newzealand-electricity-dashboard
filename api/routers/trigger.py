@@ -9,6 +9,7 @@ import sys
 import logging
 import threading
 from fastapi import APIRouter, HTTPException, Header
+from ingest_regional_fast import run_fast_ingest
 from typing import Optional
 
 router = APIRouter()
@@ -36,7 +37,6 @@ def _run_pipeline():
     print("🚀 Background pipeline starting...", flush=True)
     try:
         _setup_pipeline_path()
-        from ingest_regional_fast import run_fast_ingest
         print("📦 Imported run_fast_ingest successfully", flush=True)
         run_fast_ingest()
         print("✅ Background ingest completed successfully", flush=True)
