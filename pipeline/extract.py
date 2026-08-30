@@ -76,7 +76,7 @@ def fetch_node_prices(session: requests.Session) -> dict:
     logger.info(f"node_prices: {data.get('count', len(data.get('items', [])))} records returned")
     return data
 
-def fetch_regional_prices(session: requests.Session, max_attempts: int = 4, wait_seconds: int = 20) -> dict:
+def fetch_regional_prices(session: requests.Session, max_attempts: int = 10, wait_seconds: int = 90) -> dict:
     """
     Fetch current spot price for all 14 NZ grid regions.
     Endpoint: /region/price/ — returns only the *current* trading period,
@@ -87,6 +87,11 @@ def fetch_regional_prices(session: requests.Session, max_attempts: int = 4, wait
     fetch silently gets stale data that ON CONFLICT DO NOTHING then swallows
     as a "duplicate," hiding the gap entirely. We must check the returned
     timestamp against the expected current trading period and retry if stale.
+
+    Publish lag is variable — measured as low as ~2 min and as high as 20+ min
+    across different tests. Retry window widened to 10 attempts x 90s (~15 min
+    total) to cover the worst case while resolving quickly (1-2 attempts) most
+    of the time.
     """
     import time
     from datetime import datetime, timezone
