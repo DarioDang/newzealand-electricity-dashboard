@@ -79,25 +79,38 @@ def run_fast_ingest():
         # ── 1. Regional prices → dashboard map ───────────────
         regional_df = transformed.get("regional_prices")
         if regional_df is not None and not regional_df.empty:
-            # Check freshness before loading — skip stale data rather than
-            # inserting a previous period's price under a delayed cycle.
+            # Compare fetched data against what's already in the DB — not
+            # against a hard "expected period" cutoff. If em6 is running
+            # behind, we still want to load any real progress rather than
+            # freeze the dashboard waiting for a period that may take a
+            # long time to arrive.
             latest_ts_in_df = pd.to_datetime(regional_df['timestamp']).max()
-            now = datetime.now(timezone.utc)
-            expected_minute = 0 if now.minute < 30 else 30
-            expected_period_start = now.replace(minute=expected_minute, second=0, microsecond=0)
 
-            if latest_ts_in_df >= pd.Timestamp(expected_period_start):
+            with conn.cursor() as cur:
+                cur.execute("SELECT MAX(timestamp) FROM regional_prices")
+                latest_in_db = cur.fetchone()[0]
+
+            is_progress = (
+                latest_in_db is None
+                or pd.Timestamp(latest_ts_in_df) > pd.Timestamp(latest_in_db)
+            )
+
+            if is_progress:
                 load_regional_prices(conn, regional_df)
                 load_regional_prices_history(conn, regional_df)
+                logger.info(
+                    f"Loaded regional_prices: {latest_ts_in_df} "
+                    f"(previous latest in DB: {latest_in_db})"
+                )
             else:
                 logger.warning(
-                    f"Skipping load — regional_prices still stale after all retries "
-                    f"(got {latest_ts_in_df}, expected >= {expected_period_start})"
+                    f"Skipping load — fetched data ({latest_ts_in_df}) is not newer "
+                    f"than what's already in DB ({latest_in_db})"
                 )
         else:
             logger.warning("No regional price data returned")
 
-        # ── 3. Carbon intensity → live KPI card ──────────────
+        # ── 2. Carbon intensity → live KPI card ──────────────
         carbon_df = transformed.get("carbon_intensity")
         if carbon_df is not None and not carbon_df.empty:
             load_carbon_intensity(conn, carbon_df)
@@ -117,5 +130,3 @@ def run_fast_ingest():
 
 if __name__ == "__main__":
     run_fast_ingest()
-
-    
