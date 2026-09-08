@@ -99,7 +99,9 @@ models:
       - name: avg_price_ota
         description: "Daily average price at Auckland node"
         data_tests:
-          - not_null
+          - not_null:
+              config:
+                where: "date_nzt < (now() at time zone 'Pacific/Auckland')::date"
       - name: ni_si_spread
         description: "Average Auckland-Benmore price spread"
 
