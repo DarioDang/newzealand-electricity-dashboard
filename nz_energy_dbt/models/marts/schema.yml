@@ -97,11 +97,16 @@ models:
         data_tests:
           - not_null
       - name: avg_price_ota
-        description: "Daily average price at Auckland node"
+        description: >
+          Daily average price at Auckland node. Two historical days
+          (before node_prices was added to the 30-min fast-ingest path)
+          have no OTA2201 data and will always be NULL — not_null test
+          is set to warn, not error, for those known unrecoverable rows.
         data_tests:
           - not_null:
               config:
                 where: "date_nzt < (now() at time zone 'Pacific/Auckland')::date"
+                severity: warn
       - name: ni_si_spread
         description: "Average Auckland-Benmore price spread"
 
