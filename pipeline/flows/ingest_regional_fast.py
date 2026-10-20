@@ -4,6 +4,7 @@
 # - regional_prices        (map)
 # - regional_prices_history (time series later)
 # - carbon_intensity       (live KPI card)
+# - node_prices            (OTA2201 etc. — feeds mart_daily_summary.avg_price_ota)
 # No dbt, no other endpoints — finishes in ~10 seconds
 # ============================================================
 
@@ -22,6 +23,7 @@ from load import (
     get_connection,
     load_carbon_intensity,
     load_regional_prices,
+    load_node_prices,
     _upsert,
 )
 
@@ -116,6 +118,17 @@ def run_fast_ingest():
             load_carbon_intensity(conn, carbon_df)
         else:
             logger.warning("No carbon intensity data returned")
+
+        # ── 3. Node prices → mart_daily_summary.avg_price_ota ─
+        # PK is (timestamp, node_id) with ON CONFLICT DO NOTHING in
+        # _upsert, so re-fetching an already-loaded period is a safe
+        # no-op — no freshness gate needed here like regional_prices.
+        node_df = transformed.get("node_prices")
+        if node_df is not None and not node_df.empty:
+            inserted = load_node_prices(conn, node_df)
+            logger.info(f"Loaded node_prices: {inserted} new rows")
+        else:
+            logger.warning("No node price data returned")
 
     except Exception as e:
         logger.error(f"Fast ingest failed: {e}")
